@@ -24,6 +24,15 @@
 - обновляться по мере развития предприятия.
 
 ---
+```text
+EnterpriseProfile
+    ├── Equipment
+    ├── Technology
+    ├── Material
+    ├── Product
+    ├── Infrastructure
+    └── Certificate
+```
 
 ## 1. Общая информация
 
@@ -44,6 +53,13 @@
 ---
 
 ## 4. Производственная инфраструктура
+```text
+Infrastructure
+├── ProductionFacility
+├── Warehouse
+├── LiftingEquipment
+└── Transport
+```
 
 ### 4.1 Производственные площади
 
