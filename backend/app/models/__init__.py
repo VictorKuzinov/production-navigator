@@ -1,4 +1,5 @@
 
+from app.models.equipments import EquipmentType
 from app.models.materials import MaterialForm, MaterialGroup
 from app.models.orders import OrderType
 from app.models.pnc_reference import TechnologyType
@@ -10,4 +11,5 @@ __all__ = [
     "MaterialForm",
     "ProductType",
     "OrderType",
+    "EquipmentType",
 ]
