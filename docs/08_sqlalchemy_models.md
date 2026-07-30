@@ -1,4 +1,85 @@
-# SQLAlchemy models
+# Модели SQLAlchemy
+
+## Назначение документа
+
+Документ описывает **финальную целевую архитектуру ORM-моделей** проекта
+«Производственный навигатор». Приведённые ниже классы показывают итоговое
+состояние модели данных после реализации всех сущностей и связей между ними.
+
+Фактическая реализация выполняется поэтапно. Поэтому текущий код проекта на
+промежуточном этапе может содержать справочник без отношений, которые уже
+показаны в его финальном варианте в этом документе.
+
+## Этапы реализации
+
+### Этап 1. Независимые справочники PNC
+
+Сначала создаются независимые справочники, наследующие общие поля от
+`PNCBaseReference`. На этом этапе в них временно не добавляются `relationship`,
+если соответствующие основные сущности ещё не реализованы.
+
+Например, первоначальная реализация справочника типов продукции выглядит так:
+
+```python
+class ProductType(Base, PNCBaseReference):
+    __tablename__ = "pnc_product_type"
+```
+
+Для каждого справочника выполняется законченный цикл:
+
+1. Создание ORM-модели.
+2. Генерация миграции Alembic.
+3. Проверка сгенерированной миграции.
+4. Применение миграции к базе данных.
+5. Проверка результата и фиксация изменений в Git.
+
+### Этап 2. Основные сущности и связи
+
+После создания необходимых справочников реализуются основные сущности:
+`EnterpriseProfile`, `Material`, `Product`, `Equipment`, `ProductionOrder` и
+другие.
+
+На этом этапе добавляются:
+
+- внешние ключи `ForeignKey`;
+- объектные отношения `relationship`;
+- двусторонняя синхронизация через `back_populates`;
+- правила каскадных операций;
+- ограничения уникальности и индексы.
+
+После появления зависимой сущности соответствующий справочник приводится к
+финальному виду. Например, после реализации `Product` в `ProductType`
+добавляется отношение `products`, а в `Product` — обратное отношение
+`type_ref` и внешний ключ на `pnc_product_type.code`.
+
+> Важно: модели в основном блоке ниже приведены уже в финальном виде. Наличие
+> `relationship` в документе не означает, что это отношение должно быть
+> добавлено раньше связанной сущности в рабочем коде.
+
+## Статус реализации справочников
+
+| Справочник               | ORM-модель | Миграция | `relationship` | Статус                                    |
+|--------------------------|:----------:|:--------:|:--------------:|-------------------------------------------|
+| `TechnologyType`         |     ✅     |    ✅    |    Отложено    | Независимый справочник готов              |
+| `MaterialGroup`          |     ✅     |    ✅    |    Отложено    | Связь добавляется вместе с `Material`     |
+| `MaterialForm`           |     ✅     |    ✅    |    Отложено    | Связь добавляется вместе с `MaterialItem` |
+| `ProductType`            |     ✅     |    ✅    |    Отложено    | Связь добавляется вместе с `Product`      |
+| `EquipmentType`          |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `CraneType`              |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `TransportType`          |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `TransportScope`         |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `TransportOwnershipType` |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `WarehouseType`          |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `CertificateType`        |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `Industry`               |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `OrderType`              |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `CompanySize`            |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+| `Region`                 |     ⏳     |    ⏳    |    Отложено    | Ожидает реализации                        |
+
+## Финальная целевая архитектура моделей
+
+Ниже сохранён полный исходный набор моделей. Отношения между справочниками и
+основными сущностями показывают ожидаемое конечное состояние ORM-слоя.
 
 ```python
 from datetime import date
@@ -85,11 +166,14 @@ class TransportScope(Base, PNCBaseReference):
 
     transports: Mapped[List["Transport"]] = relationship(back_populates="scope_ref")
 
+
 class TransportOwnershipType(Base, PNCBaseReference):
     """Справочник форм владения транспортом PNC"""
+
     __tablename__ = "pnc_transport_ownership_type"
 
     transports: Mapped[List["Transport"]] = relationship(back_populates="ownership_ref")
+
 
 class WarehouseType(Base, PNCBaseReference):
     __tablename__ = "pnc_warehouse_type"
@@ -298,7 +382,8 @@ class Transport(Base):
         ForeignKey("pnc_transport_scope.code"), nullable=False
     )
     transport_ownership_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_transport_ownership_type.code"), nullable=False)
+        ForeignKey("pnc_transport_ownership_type.code"), nullable=False
+    )
     payload_tons: Mapped[float] = mapped_column(Float, nullable=False)
     body_volume_cube: Mapped[Optional[float]] = mapped_column(Float)
     has_refrigeration: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -308,6 +393,7 @@ class Transport(Base):
     type_ref: Mapped["TransportType"] = relationship(back_populates="transports")
     scope_ref: Mapped["TransportScope"] = relationship(back_populates="transports")
     ownership_ref: Mapped["TransportOwnershipType"] = relationship(back_populates="transports")
+
 
 class Equipment(Base):
     __tablename__ = "equipment"
