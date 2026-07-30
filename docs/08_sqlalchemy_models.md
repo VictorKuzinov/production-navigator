@@ -398,27 +398,51 @@ class Transport(Base):
 class Equipment(Base):
     __tablename__ = "pnc_equipment"
     __table_args__ = (
-        Index("ix_equipment_profile_type", "profile_id", "equipment_type_code"),
-        Index("ix_equipment_facility_type", "facility_id", "equipment_type_code"),
+        Index("ix_pnc_equipment_profile_type", "profile_id", "equipment_type_code"),
+        Index("ix_pnc_equipment_facility_type", "facility_id", "equipment_type_code"),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
-    facility_id: Mapped[int] = mapped_column(ForeignKey("pnc_production_facility.id"), nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer, 
+        primary_key=True, 
+        autoincrement=True
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False,
+    )
+    facility_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_production_facility.id"), 
+        nullable=False
+    )
     equipment_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_equipment_type.code"), nullable=False
     )
-    cnc: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    cnc: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False, 
+        nullable=False
+    )
     axes: Mapped[Optional[int]] = mapped_column(Integer)
-    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    quantity: Mapped[int] = mapped_column(
+        Integer, 
+        default=1, 
+        nullable=False
+    )
     max_diameter: Mapped[Optional[float]] = mapped_column(Float)
     working_zone_x: Mapped[Optional[float]] = mapped_column(Float)
     working_zone_y: Mapped[Optional[float]] = mapped_column(Float)
     working_zone_z: Mapped[Optional[float]] = mapped_column(Float)
 
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="equipments")
-    facility: Mapped["ProductionFacility"] = relationship(back_populates="equipments")
-    type_ref: Mapped["EquipmentType"] = relationship(back_populates="equipments")
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="equipments"
+    )
+    facility: Mapped["ProductionFacility"] = relationship(
+        back_populates="equipments"
+    )
+    type_ref: Mapped["EquipmentType"] = relationship(
+        back_populates="equipments"
+    )
 
 
 class EnterpriseCertificate(Base):
