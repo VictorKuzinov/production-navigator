@@ -219,13 +219,13 @@ class Region(Base, PNCBaseReference):
 # Профиль предприятия
 
 class EnterpriseProfile(Base):
-    __tablename__ = "enterprise_profile"
+    __tablename__ = "pnc_enterprise_profile"
     __table_args__ = (
-        UniqueConstraint("inn", name="uq_enterprise_profile_inn"),
-        UniqueConstraint("ogrn", name="uq_enterprise_profile_ogrn"),
-        Index("ix_enterprise_profile_region_code", "region_code"),
-        Index("ix_enterprise_profile_company_size_code", "company_size_code"),
-        Index("ix_enterprise_profile_company_name", "company_name"),
+        UniqueConstraint("inn", name="uq_pnc_enterprise_profile_inn"),
+        UniqueConstraint("ogrn", name="uq_pnc_enterprise_profile_ogrn"),
+        Index("ix_pnc_enterprise_profile_region_code", "region_code"),
+        Index("ix_pnc_enterprise_profile_company_size_code", "company_size_code"),
+        Index("ix_pnc_enterprise_profile_company_name", "company_name"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -260,13 +260,13 @@ class EnterpriseProfile(Base):
     products: Mapped[List["Product"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
-    certificates: Mapped[List["EnterpriseCertificate"]] = relationship(
+    certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
-    industries: Mapped[List["EnterpriseIndustry"]] = relationship(
+    industries: Mapped[list["EnterpriseIndustry"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
-    orders: Mapped[List["ProductionOrder"]] = relationship(
+    orders: Mapped[list["ProductionOrder"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
     quality_capability: Mapped[Optional["QualityCapability"]] = relationship(
@@ -275,12 +275,12 @@ class EnterpriseProfile(Base):
 
 
 class QualityCapability(Base):
-    __tablename__ = "quality_capability"
+    __tablename__ = "pnc_quality_capability"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     # unique=True уже создает уникальный индекс; отдельный Index здесь не нужен.
     profile_id: Mapped[int] = mapped_column(
-        ForeignKey("enterprise_profile.id"), nullable=False, unique=True
+        ForeignKey("pnc_enterprise_profile.id"), nullable=False, unique=True
     )
     min_it_grade: Mapped[Optional[int]] = mapped_column(Integer)
     min_ra: Mapped[Optional[float]] = mapped_column(Float)
@@ -292,14 +292,14 @@ class QualityCapability(Base):
 
 
 class ProductionFacility(Base):
-    __tablename__ = "production_facility"
+    __tablename__ = "pnc_production_facility"
     __table_args__ = (
         UniqueConstraint("profile_id", "facility_name", name="uq_facility_profile_name"),
-        Index("ix_facility_profile_id", "profile_id"),
+        Index("ix_pnc_facility_profile_id", "profile_id"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     facility_name: Mapped[str] = mapped_column(String(255), nullable=False)
     total_area: Mapped[float] = mapped_column(Float, nullable=False)
     available_area: Mapped[float] = mapped_column(Float, nullable=False)
@@ -317,13 +317,13 @@ class ProductionFacility(Base):
 
 
 class Warehouse(Base):
-    __tablename__ = "warehouse"
+    __tablename__ = "pnc_warehouse"
     __table_args__ = (
         Index("ix_warehouse_profile_type", "profile_id", "warehouse_type_code"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     warehouse_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_warehouse_type.code"), nullable=False
     )
@@ -339,7 +339,7 @@ class Warehouse(Base):
 
 
 class LiftingEquipment(Base):
-    __tablename__ = "lifting_equipment"
+    __tablename__ = "pnc_lifting_equipment"
     __table_args__ = (
         Index("ix_lifting_profile_type", "profile_id", "crane_type_code"),
         Index("ix_lifting_facility_id", "facility_id"),
@@ -348,10 +348,10 @@ class LiftingEquipment(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     crane_type_code: Mapped[str] = mapped_column(ForeignKey("pnc_crane_type.code"), nullable=False)
-    facility_id: Mapped[Optional[int]] = mapped_column(ForeignKey("production_facility.id"))
-    warehouse_id: Mapped[Optional[int]] = mapped_column(ForeignKey("warehouse.id"))
+    facility_id: Mapped[Optional[int]] = mapped_column(ForeignKey("pnc_production_facility.id"))
+    warehouse_id: Mapped[Optional[int]] = mapped_column(ForeignKey("pnc_warehouse.id"))
     load_capacity_tons: Mapped[float] = mapped_column(Float, nullable=False)
     max_lift_height: Mapped[Optional[float]] = mapped_column(Float)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
@@ -367,14 +367,14 @@ class LiftingEquipment(Base):
 
 
 class Transport(Base):
-    __tablename__ = "transport"
+    __tablename__ = "pnc_transport"
     __table_args__ = (
         Index("ix_transport_profile_type", "profile_id", "transport_type_code"),
         Index("ix_transport_profile_scope", "profile_id", "transport_scope_code"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     transport_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_transport_type.code"), nullable=False
     )
@@ -396,15 +396,15 @@ class Transport(Base):
 
 
 class Equipment(Base):
-    __tablename__ = "equipment"
+    __tablename__ = "pnc_equipment"
     __table_args__ = (
         Index("ix_equipment_profile_type", "profile_id", "equipment_type_code"),
         Index("ix_equipment_facility_type", "facility_id", "equipment_type_code"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
-    facility_id: Mapped[int] = mapped_column(ForeignKey("production_facility.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
+    facility_id: Mapped[int] = mapped_column(ForeignKey("pnc_production_facility.id"), nullable=False)
     equipment_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_equipment_type.code"), nullable=False
     )
@@ -422,7 +422,7 @@ class Equipment(Base):
 
 
 class EnterpriseCertificate(Base):
-    __tablename__ = "enterprise_certificate"
+    __tablename__ = "pnc_enterprise_certificate"
     __table_args__ = (
         UniqueConstraint(
             "profile_id",
@@ -441,7 +441,7 @@ class EnterpriseCertificate(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pbc_enterprise_profile.id"), nullable=False)
     certificate_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_certificate_type.code"), nullable=False
     )
@@ -453,7 +453,7 @@ class EnterpriseCertificate(Base):
 
 
 class EnterpriseIndustry(Base):
-    __tablename__ = "enterprise_industry"
+    __tablename__ = "pnc_enterprise_industry"
     __table_args__ = (
         UniqueConstraint("profile_id", "industry_code", name="uq_profile_industry"),
         Index("ix_enterprise_industry_industry_profile", "industry_code", "profile_id"),
@@ -467,7 +467,7 @@ class EnterpriseIndustry(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     industry_code: Mapped[str] = mapped_column(ForeignKey("pnc_industry.code"), nullable=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
@@ -478,7 +478,7 @@ class EnterpriseIndustry(Base):
 # Материалы и продукция
 
 class Material(Base):
-    __tablename__ = "material"
+    __tablename__ = "pnc_material"
     __table_args__ = (
         UniqueConstraint("group_code", "grade_name", name="uq_material_group_grade"),
         Index("ix_material_group_code", "group_code"),
@@ -497,7 +497,7 @@ class Material(Base):
 
 
 class MaterialItem(Base):
-    __tablename__ = "material_item"
+    __tablename__ = "pnc_material_item"
     __table_args__ = (
         UniqueConstraint(
             "material_id",
@@ -510,7 +510,7 @@ class MaterialItem(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    material_id: Mapped[int] = mapped_column(ForeignKey("material.id"), nullable=False)
+    material_id: Mapped[int] = mapped_column(ForeignKey("pnc_material.id"), nullable=False)
     material_form_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_material_form.code"), nullable=False
     )
@@ -523,7 +523,7 @@ class MaterialItem(Base):
 
 
 class Product(Base):
-    __tablename__ = "product"
+    __tablename__ = "pnc_product"
     __table_args__ = (
         UniqueConstraint("profile_id", "sku_code", name="uq_product_profile_sku"),
         Index("ix_product_profile_type", "profile_id", "product_type_code"),
@@ -532,11 +532,11 @@ class Product(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     product_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_product_type.code"), nullable=False
     )
-    material_item_id: Mapped[int] = mapped_column(ForeignKey("material_item.id"), nullable=False)
+    material_item_id: Mapped[int] = mapped_column(ForeignKey("pnc_material_item.id"), nullable=False)
     sku_code: Mapped[str] = mapped_column(String(100), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     weight_net: Mapped[float] = mapped_column(Float, nullable=False)
@@ -550,7 +550,7 @@ class Product(Base):
 
 
 class ProductionOrder(Base):
-    __tablename__ = "production_order"
+    __tablename__ = "pnc_production_order"
     __table_args__ = (
         UniqueConstraint("profile_id", "order_number", name="uq_order_profile_number"),
         Index("ix_order_profile_deadline", "profile_id", "deadline"),
@@ -561,9 +561,9 @@ class ProductionOrder(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("enterprise_profile.id"), nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
     order_type_code: Mapped[str] = mapped_column(ForeignKey("pnc_order_type.code"), nullable=False)
-    product_id: Mapped[int] = mapped_column(ForeignKey("product.id"), nullable=False)
+    product_id: Mapped[int] = mapped_column(ForeignKey("pnc_product.id"), nullable=False)
     industry_code: Mapped[str] = mapped_column(ForeignKey("pnc_industry.code"), nullable=False)
     order_number: Mapped[str] = mapped_column(String(100), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

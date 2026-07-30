@@ -18,7 +18,6 @@ from app.models.productions import (
     TransportScope,
     TransportType,
     WarehouseType,
-
 )
 from app.models.products import ProductType
 
