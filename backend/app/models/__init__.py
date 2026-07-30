@@ -12,6 +12,9 @@ from app.models.materials import (
 )
 from app.models.orders import OrderType
 from app.models.pnc_reference import TechnologyType
+from app.models.productions import (
+    CraneType,
+)
 from app.models.products import ProductType
 
 __all__ = [
@@ -25,4 +28,5 @@ __all__ = [
     "Industry",
     "CompanySize",
     "Region",
+    "CraneType",
 ]
