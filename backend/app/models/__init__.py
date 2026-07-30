@@ -3,6 +3,7 @@ from app.models.enterprises import (
     CertificateType,
     CompanySize,
     Industry,
+    Region,
 )
 from app.models.equipments import EquipmentType
 from app.models.materials import (
@@ -23,4 +24,5 @@ __all__ = [
     "CertificateType",
     "Industry",
     "CompanySize",
+    "Region",
 ]

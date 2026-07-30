@@ -13,3 +13,7 @@ class Industry(Base, PNCBaseReference):
 
 class CompanySize(Base, PNCBaseReference):
     __tablename__ = "pnc_company_size"
+
+
+class Region(Base, PNCBaseReference):
+    __tablename__ = "pnc_region"
