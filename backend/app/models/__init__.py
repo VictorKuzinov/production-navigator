@@ -15,6 +15,7 @@ from app.models.pnc_reference import TechnologyType
 from app.models.productions import (
     CraneType,
     TransportType,
+    TransportScope,
 )
 from app.models.products import ProductType
 
@@ -31,4 +32,5 @@ __all__ = [
     "Region",
     "CraneType",
     "TransportType",
+    "TransportScope",
 ]

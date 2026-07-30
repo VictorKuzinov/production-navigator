@@ -9,3 +9,8 @@ class CraneType(Base, PNCBaseReference):
 
 class TransportType(Base, PNCBaseReference):
     __tablename__ = "pnc_transport_type"
+
+
+class TransportScope(Base, PNCBaseReference):
+    __tablename__ = "pnc_transport_scope"
+
