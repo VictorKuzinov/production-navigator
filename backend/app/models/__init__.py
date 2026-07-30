@@ -1,5 +1,5 @@
 
-from app.models.enterprises import CertificateType
+from app.models.enterprises import CertificateType, Industry
 from app.models.equipments import EquipmentType
 from app.models.materials import MaterialForm, MaterialGroup
 from app.models.orders import OrderType
@@ -13,5 +13,6 @@ __all__ = [
     "ProductType",
     "OrderType",
     "EquipmentType",
-    "CertificateType"
+    "CertificateType",
+    "Industry",
 ]
