@@ -14,8 +14,10 @@ from app.models.orders import OrderType
 from app.models.pnc_reference import TechnologyType
 from app.models.productions import (
     CraneType,
-    TransportType,
+    TransportOwnershipType,
     TransportScope,
+    TransportType,
+
 )
 from app.models.products import ProductType
 
@@ -33,4 +35,6 @@ __all__ = [
     "CraneType",
     "TransportType",
     "TransportScope",
+    "TransportOwnershipType",
+
 ]
