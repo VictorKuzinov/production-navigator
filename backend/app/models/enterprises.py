@@ -9,3 +9,7 @@ class CertificateType(Base, PNCBaseReference):
 
 class Industry(Base, PNCBaseReference):
     __tablename__ = "pnc_industry"
+
+
+class CompanySize(Base, PNCBaseReference):
+    __tablename__ = "pnc_company_size"
