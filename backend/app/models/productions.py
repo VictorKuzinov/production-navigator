@@ -18,3 +18,7 @@ class TransportScope(Base, PNCBaseReference):
 class TransportOwnershipType(Base, PNCBaseReference):
     """Справочник форм владения транспортом PNC"""
     __tablename__ = "pnc_transport_ownership_type"
+
+
+class WarehouseType(Base, PNCBaseReference):
+    __tablename__ = "pnc_warehouse_type"

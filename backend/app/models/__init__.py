@@ -17,6 +17,7 @@ from app.models.productions import (
     TransportOwnershipType,
     TransportScope,
     TransportType,
+    WarehouseType,
 
 )
 from app.models.products import ProductType
@@ -36,5 +37,5 @@ __all__ = [
     "TransportType",
     "TransportScope",
     "TransportOwnershipType",
-
+    "WarehouseType",
 ]
