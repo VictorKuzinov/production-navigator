@@ -372,8 +372,8 @@ class LiftingEquipment(Base):
 class Transport(Base):
     __tablename__ = "pnc_transport"
     __table_args__ = (
-        Index("ix_transport_profile_type", "profile_id", "transport_type_code"),
-        Index("ix_transport_profile_scope", "profile_id", "transport_scope_code"),
+        Index("ix_pnc_transport_profile_type", "profile_id", "transport_type_code"),
+        Index("ix_pnc_transport_profile_scope", "profile_id", "transport_scope_code"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

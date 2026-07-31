@@ -22,6 +22,7 @@ if TYPE_CHECKING:
         LiftingEquipment,
         ProductionFacility,
         Warehouse,
+        Transport,
     )
 
 
@@ -74,9 +75,9 @@ class EnterpriseProfile(Base):
     lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
-    # transports: Mapped[list["Transport"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
+    transports: Mapped[list["Transport"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
     equipments: Mapped[list["Equipment"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )

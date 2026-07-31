@@ -16,6 +16,7 @@ from app.models.pnc_reference import TechnologyType
 from app.models.productions import (
     CraneType,
     ProductionFacility,
+    Transport,
     TransportOwnershipType,
     TransportScope,
     TransportType,
@@ -46,4 +47,5 @@ __all__ = [
     "EnterpriseProfile",
     "Warehouse",
     "LiftingEquipment",
+    "Transport",
 ]

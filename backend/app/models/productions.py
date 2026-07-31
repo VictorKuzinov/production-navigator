@@ -33,14 +33,26 @@ class CraneType(Base, PNCBaseReference):
 class TransportType(Base, PNCBaseReference):
     __tablename__ = "pnc_transport_type"
 
+    transports: Mapped[list["Transport"]] = relationship(
+        back_populates="type_ref",
+    )
+
 
 class TransportScope(Base, PNCBaseReference):
     __tablename__ = "pnc_transport_scope"
+
+    transports: Mapped[list["Transport"]] = relationship(
+        back_populates="scope_ref",
+    )
 
 
 class TransportOwnershipType(Base, PNCBaseReference):
     """Справочник форм владения транспортом PNC"""
     __tablename__ = "pnc_transport_ownership_type"
+
+    transports: Mapped[list["Transport"]] = relationship(
+        back_populates="ownership_ref",
+    )
 
 
 class WarehouseType(Base, PNCBaseReference):
@@ -207,4 +219,80 @@ class Warehouse(Base):
     )
     lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
         back_populates="warehouse"
+    )
+
+
+class Transport(Base):
+    __tablename__ = "pnc_transport"
+    __table_args__ = (
+        Index(
+            "ix_pnc_transport_profile_type",
+            "profile_id", "transport_type_code"
+        ),
+        Index(
+            "ix_pnc_transport_profile_scope",
+            "profile_id",
+            "transport_scope_code"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "pnc_enterprise_profile.id"
+        ),
+        nullable=False
+    )
+    transport_type_code: Mapped[str] = mapped_column(
+        ForeignKey(
+            "pnc_transport_type.code"
+        ),
+        nullable=False
+    )
+    transport_scope_code: Mapped[str] = mapped_column(
+        ForeignKey(
+            "pnc_transport_scope.code"
+        ),
+        nullable=False
+    )
+    transport_ownership_code: Mapped[str] = mapped_column(
+        ForeignKey(
+            "pnc_transport_ownership_type.code"
+        ),
+        nullable=False
+    )
+    payload_tons: Mapped[float] = mapped_column(
+        Float,
+        nullable=False
+    )
+    body_volume_cube: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    has_refrigeration: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+    quantity: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="transports"
+    )
+    type_ref: Mapped["TransportType"] = relationship(
+        back_populates="transports"
+    )
+    scope_ref: Mapped["TransportScope"] = relationship(
+        back_populates="transports"
+    )
+    ownership_ref: Mapped["TransportOwnershipType"] = relationship(
+        back_populates="transports"
     )
