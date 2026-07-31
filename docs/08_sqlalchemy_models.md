@@ -319,8 +319,11 @@ class ProductionFacility(Base):
 class Warehouse(Base):
     __tablename__ = "pnc_warehouse"
     __table_args__ = (
-        Index("ix_warehouse_profile_type", "profile_id", "warehouse_type_code"),
-    )
+        Index(
+            "ix_pnc_warehouse_profile_type",
+            "profile_id",
+            "warehouse_type_code",
+        ),
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
@@ -328,12 +331,12 @@ class Warehouse(Base):
         ForeignKey("pnc_warehouse_type.code"), nullable=False
     )
     total_capacity_cube: Mapped[float] = mapped_column(Float, nullable=False)
-    max_load_sqm: Mapped[Optional[float]] = mapped_column(Float)
+    max_load_sqm: Mapped[float | None] = mapped_column(Float)
     temperature_control: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     profile: Mapped["EnterpriseProfile"] = relationship(back_populates="warehouses")
     type_ref: Mapped["WarehouseType"] = relationship(back_populates="warehouses")
-    lifting_equipments: Mapped[List["LiftingEquipment"]] = relationship(
+    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
         back_populates="warehouse"
     )
 
@@ -341,10 +344,10 @@ class Warehouse(Base):
 class LiftingEquipment(Base):
     __tablename__ = "pnc_lifting_equipment"
     __table_args__ = (
-        Index("ix_lifting_profile_type", "profile_id", "crane_type_code"),
-        Index("ix_lifting_facility_id", "facility_id"),
-        Index("ix_lifting_warehouse_id", "warehouse_id"),
-        Index("ix_lifting_load_capacity", "load_capacity_tons"),
+        Index("ix_pnc_lifting_profile_type", "profile_id", "crane_type_code"),
+        Index("ix_pnc_lifting_facility_id", "facility_id"),
+        Index("ix_pnc_lifting_warehouse_id", "warehouse_id"),
+        Index("ix_pmc_lifting_load_capacity", "load_capacity_tons"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

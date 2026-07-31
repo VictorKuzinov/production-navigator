@@ -20,6 +20,8 @@ from app.models.productions import (
     TransportScope,
     TransportType,
     WarehouseType,
+    Warehouse,
+    LiftingEquipment
 )
 from app.models.products import ProductType
 
@@ -41,5 +43,7 @@ __all__ = [
     "WarehouseType",
     "Equipment",
     "ProductionFacility",
-    "EnterpriseProfile"
+    "EnterpriseProfile",
+    "Warehouse",
+    "LiftingEquipment",
 ]

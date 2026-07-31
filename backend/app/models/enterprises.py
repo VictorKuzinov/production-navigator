@@ -18,6 +18,11 @@ from app.models.base_reference import PNCBaseReference
 
 if TYPE_CHECKING:
     from app.models.equipments import Equipment
+    from app.models.productions import (
+        LiftingEquipment,
+        ProductionFacility,
+        Warehouse,
+    )
 
 
 class CertificateType(Base, PNCBaseReference):
@@ -60,15 +65,15 @@ class EnterpriseProfile(Base):
 
     size_ref: Mapped[Optional["CompanySize"]] = relationship(back_populates="profiles")
     region_ref: Mapped[Optional["Region"]] = relationship(back_populates="profiles")
-    # facilities: Mapped[List["ProductionFacility"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
-    # warehouses: Mapped[List["Warehouse"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
-    # lifting_equipments: Mapped[List["LiftingEquipment"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
+    facilities: Mapped[list["ProductionFacility"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
+    warehouses: Mapped[list["Warehouse"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
+    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
     # transports: Mapped[list["Transport"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )

@@ -25,6 +25,10 @@ if TYPE_CHECKING:
 class CraneType(Base, PNCBaseReference):
     __tablename__ = "pnc_crane_type"
 
+    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
+        back_populates="type_ref",
+    )
+
 
 class TransportType(Base, PNCBaseReference):
     __tablename__ = "pnc_transport_type"
@@ -41,6 +45,10 @@ class TransportOwnershipType(Base, PNCBaseReference):
 
 class WarehouseType(Base, PNCBaseReference):
     __tablename__ = "pnc_warehouse_type"
+
+    warehouses: Mapped[list["Warehouse"]] = relationship(
+        back_populates="type_ref",
+    )
 
 
 class ProductionFacility(Base):
@@ -73,6 +81,130 @@ class ProductionFacility(Base):
 
     profile: Mapped["EnterpriseProfile"] = relationship(back_populates="facilities")
     equipments: Mapped[list["Equipment"]] = relationship(back_populates="facility")
-    # lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
-    #     back_populates="facility"
-    # )
+    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
+        back_populates="facility"
+    )
+
+
+class LiftingEquipment(Base):
+    __tablename__ = "pnc_lifting_equipment"
+    __table_args__ = (
+        Index(
+            "ix_pnc_lifting_profile_type",
+            "profile_id",
+            "crane_type_code",
+        ),
+        Index(
+            "ix_pnc_lifting_facility_id",
+            "facility_id",
+        ),
+        Index(
+            "ix_pnc_lifting_warehouse_id",
+            "warehouse_id",
+        ),
+        Index(
+            "ix_pnc_lifting_load_capacity",
+            "load_capacity_tons",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False,
+    )
+
+    crane_type_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_crane_type.code"),
+        nullable=False,
+    )
+
+    facility_id: Mapped[int | None] = mapped_column(
+        ForeignKey("pnc_production_facility.id"),
+        nullable=True,
+    )
+
+    warehouse_id: Mapped[int | None] = mapped_column(
+        ForeignKey("pnc_warehouse.id"),
+        nullable=True,
+    )
+
+    load_capacity_tons: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+    )
+
+    max_lift_height: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
+    quantity: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False,
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="lifting_equipments",
+    )
+
+    type_ref: Mapped["CraneType"] = relationship(
+        back_populates="lifting_equipments",
+    )
+
+    facility: Mapped["ProductionFacility | None"] = relationship(
+        back_populates="lifting_equipments",
+    )
+
+    warehouse: Mapped["Warehouse | None"] = relationship(
+        back_populates="lifting_equipments",
+    )
+
+
+class Warehouse(Base):
+    __tablename__ = "pnc_warehouse"
+    __table_args__ = (
+        Index(
+            "ix_pnc_warehouse_profile_type",
+            "profile_id",
+            "warehouse_type_code",
+        ),
+    )
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False
+    )
+    warehouse_type_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_warehouse_type.code"), nullable=False
+    )
+    total_capacity_cube: Mapped[float] = mapped_column(
+        Float,
+        nullable=False
+    )
+    max_load_sqm: Mapped[float | None] = mapped_column(Float)
+    temperature_control: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="warehouses"
+    )
+    type_ref: Mapped["WarehouseType"] = relationship(
+        back_populates="warehouses"
+    )
+    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
+        back_populates="warehouse"
+    )
