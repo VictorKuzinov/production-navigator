@@ -1,6 +1,6 @@
 # enterprises.py
-## Стандартная библиотека
-from typing import Optional
+# Стандартные библиотеки
+from typing import TYPE_CHECKING, Optional
 
 # Сторонние пакеты
 from sqlalchemy import (
@@ -15,6 +15,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 # Локальные пакеты
 from app.db.database import Base
 from app.models.base_reference import PNCBaseReference
+
+if TYPE_CHECKING:
+    from app.models.equipments import Equipment
 
 
 class CertificateType(Base, PNCBaseReference):
@@ -46,14 +49,14 @@ class EnterpriseProfile(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     company_name: Mapped[str] = mapped_column(String(255), nullable=False)
     # ИНН и ОГРН хранятся строками: это идентификаторы, а не числа для вычислений.
-    inn: Mapped[Optional[str]] = mapped_column(String(12))
-    ogrn: Mapped[Optional[str]] = mapped_column(String(15))
-    website: Mapped[Optional[str]] = mapped_column(String(255))
-    employees_count: Mapped[Optional[int]] = mapped_column(Integer)
-    company_size_code: Mapped[Optional[str]] = mapped_column(
+    inn: Mapped[str | None] = mapped_column(String(12))
+    ogrn: Mapped[str | None] = mapped_column(String(15))
+    website: Mapped[str | None] = mapped_column(String(255))
+    employees_count: Mapped[int | None] = mapped_column(Integer)
+    company_size_code: Mapped[str | None] = mapped_column(
         ForeignKey("pnc_company_size.code")
     )
-    region_code: Mapped[Optional[str]] = mapped_column(ForeignKey("pnc_region.code"))
+    region_code: Mapped[str | None] = mapped_column(ForeignKey("pnc_region.code"))
 
     size_ref: Mapped[Optional["CompanySize"]] = relationship(back_populates="profiles")
     region_ref: Mapped[Optional["Region"]] = relationship(back_populates="profiles")
@@ -66,13 +69,13 @@ class EnterpriseProfile(Base):
     # lifting_equipments: Mapped[List["LiftingEquipment"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )
-    # transports: Mapped[List["Transport"]] = relationship(
+    # transports: Mapped[list["Transport"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )
-    # equipments: Mapped[List["Equipment"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
-    # products: Mapped[List["Product"]] = relationship(
+    equipments: Mapped[list["Equipment"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
+    # products: Mapped[list["Product"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )
     # certificates: Mapped[list["EnterpriseCertificate"]] = relationship(

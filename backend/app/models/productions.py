@@ -1,5 +1,6 @@
 # productions.py
 ## Стандартная библиотека
+from typing import TYPE_CHECKING
 
 # Сторонние пакеты
 from sqlalchemy import (
@@ -16,8 +17,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 # Локальные пакеты
 from app.db.database import Base
 from app.models.base_reference import PNCBaseReference
-from app.models.enterprises import EnterpriseProfile
 
+if TYPE_CHECKING:
+    from app.models.enterprises import EnterpriseProfile
+    from app.models.equipments import Equipment
 
 class CraneType(Base, PNCBaseReference):
     __tablename__ = "pnc_crane_type"
@@ -69,7 +72,7 @@ class ProductionFacility(Base):
     steam_supply: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     profile: Mapped["EnterpriseProfile"] = relationship(back_populates="facilities")
-    # equipments: Mapped[list["Equipment"]] = relationship(back_populates="facility")
+    equipments: Mapped[list["Equipment"]] = relationship(back_populates="facility")
     # lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
     #     back_populates="facility"
     # )

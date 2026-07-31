@@ -2,10 +2,11 @@
 from app.models.enterprises import (
     CertificateType,
     CompanySize,
+    EnterpriseProfile,
     Industry,
     Region,
 )
-from app.models.equipments import EquipmentType
+from app.models.equipments import Equipment, EquipmentType
 from app.models.materials import (
     MaterialForm,
     MaterialGroup,
@@ -14,6 +15,7 @@ from app.models.orders import OrderType
 from app.models.pnc_reference import TechnologyType
 from app.models.productions import (
     CraneType,
+    ProductionFacility,
     TransportOwnershipType,
     TransportScope,
     TransportType,
@@ -37,4 +39,7 @@ __all__ = [
     "TransportScope",
     "TransportOwnershipType",
     "WarehouseType",
+    "Equipment",
+    "ProductionFacility",
+    "EnterpriseProfile"
 ]
