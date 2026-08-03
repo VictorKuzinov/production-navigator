@@ -1,9 +1,11 @@
 # enterprises.py
 # Стандартные библиотеки
+from datetime import date
 from typing import TYPE_CHECKING, Optional
 
 # Сторонние пакеты
 from sqlalchemy import (
+    Date,
     ForeignKey,
     Index,
     Integer,
@@ -27,9 +29,13 @@ if TYPE_CHECKING:
     )
     from app.models.products import Product
 
+
 class CertificateType(Base, PNCBaseReference):
     __tablename__ = "pnc_certificate_type"
 
+    certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
+        back_populates="type_ref",
+    )
 
 class Industry(Base, PNCBaseReference):
     __tablename__ = "pnc_industry"
@@ -117,9 +123,9 @@ class EnterpriseProfile(Base):
     products: Mapped[list["Product"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
-    # certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
+    certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
     # industries: Mapped[list["EnterpriseIndustry"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )
@@ -129,3 +135,55 @@ class EnterpriseProfile(Base):
     # quality_capability: Mapped[Optional["QualityCapability"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan", single_parent=True
     # )
+
+
+class EnterpriseCertificate(Base):
+    __tablename__ = "pnc_enterprise_certificate"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "certificate_type_code",
+            "issue_date",
+            "expiry_date",
+            name="uq_pnc_certificate_profile_type_dates",
+        ),
+        Index(
+            "ix_pnc_certificate_profile_type_expiry",
+            "profile_id",
+            "certificate_type_code",
+            "expiry_date",
+        ),
+        Index(
+            "ix_pnc_certificate_expiry_date",
+            "expiry_date",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False,
+    )
+    certificate_type_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_certificate_type.code"),
+        nullable=False,
+    )
+    issue_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+    expiry_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="certificates",
+    )
+    type_ref: Mapped["CertificateType"] = relationship(
+        back_populates="certificates",
+    )

@@ -460,27 +460,48 @@ class EnterpriseCertificate(Base):
             "certificate_type_code",
             "issue_date",
             "expiry_date",
-            name="uq_certificate_profile_type_dates",
+            name="uq_pnc_certificate_profile_type_dates",
         ),
         Index(
-            "ix_certificate_profile_type_expiry",
+            "ix_pnc_certificate_profile_type_expiry",
             "profile_id",
             "certificate_type_code",
             "expiry_date",
         ),
-        Index("ix_certificate_expiry_date", "expiry_date"),
+        Index(
+            "ix_pnc_certificate_expiry_date",
+            "expiry_date",
+        ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("pbc_enterprise_profile.id"), nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False,
+    )
     certificate_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_certificate_type.code"), nullable=False
+        ForeignKey("pnc_certificate_type.code"),
+        nullable=False,
     )
-    issue_date: Mapped[date] = mapped_column(Date, nullable=False)
-    expiry_date: Mapped[date] = mapped_column(Date, nullable=False)
+    issue_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+    expiry_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
 
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="certificates")
-    type_ref: Mapped["CertificateType"] = relationship(back_populates="certificates")
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="certificates",
+    )
+    type_ref: Mapped["CertificateType"] = relationship(
+        back_populates="certificates",
+    )
 
 
 class EnterpriseIndustry(Base):

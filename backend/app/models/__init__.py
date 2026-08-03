@@ -2,6 +2,7 @@
 from app.models.enterprises import (
     CertificateType,
     CompanySize,
+    EnterpriseCertificate,
     EnterpriseProfile,
     Industry,
     Region,
@@ -12,7 +13,7 @@ from app.models.materials import (
     MaterialForm,
     MaterialGroup,
 )
-from app.models.orders import OrderType
+from app.models.orders import OrderType, ProductionOrder
 from app.models.pnc_reference import TechnologyType
 from app.models.productions import (
     CraneType,
@@ -52,4 +53,7 @@ __all__ = [
     "MaterialGroup",
     "Material",
     "Product",
+    "ProductionOrder",
+    "EnterpriseCertificate",
+    "EnterpriseProfile",
 ]
