@@ -104,11 +104,30 @@
 
 ```text
 production-navigator/
+│
 ├── backend/
+│   ├── alembic/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── db/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── repositories/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── main.py
+│   │
+│   ├── tests/
+│   ├── pyproject.toml
+│   ├── .env
+│   ├── .env.example
+│   └── README.md
+│
 ├── docs/
 ├── frontend/
 ├── prototype/
-└── tests/
+└── .gitignore
 ```
 ```text
 docs/
