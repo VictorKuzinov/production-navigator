@@ -15,17 +15,17 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 # Локальные пакеты
 from app.db.database import Base
 from app.models.base_reference import PNCBaseReference
-from app.models.products import Product
 
 if TYPE_CHECKING:
     from app.models.equipments import Equipment
+    from app.models.orders import ProductionOrder
     from app.models.productions import (
         LiftingEquipment,
         ProductionFacility,
-        Warehouse,
         Transport,
+        Warehouse,
     )
-
+    from app.models.products import Product
 
 class CertificateType(Base, PNCBaseReference):
     __tablename__ = "pnc_certificate_type"
@@ -33,6 +33,10 @@ class CertificateType(Base, PNCBaseReference):
 
 class Industry(Base, PNCBaseReference):
     __tablename__ = "pnc_industry"
+
+    orders: Mapped[list["ProductionOrder"]] = relationship(
+        back_populates="industry_ref",
+    )
 
 
 class CompanySize(Base, PNCBaseReference):
@@ -46,15 +50,37 @@ class Region(Base, PNCBaseReference):
 class EnterpriseProfile(Base):
     __tablename__ = "pnc_enterprise_profile"
     __table_args__ = (
-        UniqueConstraint("inn", name="uq_pnc_enterprise_profile_inn"),
-        UniqueConstraint("ogrn", name="uq_pnc_enterprise_profile_ogrn"),
-        Index("ix_pnc_enterprise_profile_region_code", "region_code"),
-        Index("ix_pnc_enterprise_profile_company_size_code", "company_size_code"),
-        Index("ix_pnc_enterprise_profile_company_name", "company_name"),
+        UniqueConstraint(
+            "inn",
+            name="uq_pnc_enterprise_profile_inn"
+        ),
+        UniqueConstraint(
+            "ogrn",
+            name="uq_pnc_enterprise_profile_ogrn"
+        ),
+        Index(
+            "ix_pnc_enterprise_profile_region_code",
+            "region_code"
+        ),
+        Index(
+            "ix_pnc_enterprise_profile_company_size_code",
+            "company_size_code"
+        ),
+        Index(
+            "ix_pnc_enterprise_profile_company_name",
+            "company_name"
+        ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    company_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    company_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False
+    )
     # ИНН и ОГРН хранятся строками: это идентификаторы, а не числа для вычислений.
     inn: Mapped[str | None] = mapped_column(String(12))
     ogrn: Mapped[str | None] = mapped_column(String(15))
@@ -63,10 +89,16 @@ class EnterpriseProfile(Base):
     company_size_code: Mapped[str | None] = mapped_column(
         ForeignKey("pnc_company_size.code")
     )
-    region_code: Mapped[str | None] = mapped_column(ForeignKey("pnc_region.code"))
+    region_code: Mapped[str | None] = mapped_column(
+        ForeignKey("pnc_region.code")
+    )
 
-    size_ref: Mapped[Optional["CompanySize"]] = relationship(back_populates="profiles")
-    region_ref: Mapped[Optional["Region"]] = relationship(back_populates="profiles")
+    size_ref: Mapped[Optional["CompanySize"]] = relationship(
+        back_populates="profiles"
+    )
+    region_ref: Mapped[Optional["Region"]] = relationship(
+        back_populates="profiles"
+    )
     facilities: Mapped[list["ProductionFacility"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
@@ -91,9 +123,9 @@ class EnterpriseProfile(Base):
     # industries: Mapped[list["EnterpriseIndustry"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )
-    # orders: Mapped[list["ProductionOrder"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
+    orders: Mapped[list["ProductionOrder"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
     # quality_capability: Mapped[Optional["QualityCapability"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan", single_parent=True
     # )
