@@ -3,6 +3,7 @@ from app.models.enterprises import (
     CertificateType,
     CompanySize,
     EnterpriseCertificate,
+    EnterpriseIndustry,
     EnterpriseProfile,
     Industry,
     Region,
@@ -56,4 +57,5 @@ __all__ = [
     "ProductionOrder",
     "EnterpriseCertificate",
     "EnterpriseProfile",
+    "EnterpriseIndustry",
 ]

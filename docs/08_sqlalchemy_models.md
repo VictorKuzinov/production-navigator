@@ -507,10 +507,18 @@ class EnterpriseCertificate(Base):
 class EnterpriseIndustry(Base):
     __tablename__ = "pnc_enterprise_industry"
     __table_args__ = (
-        UniqueConstraint("profile_id", "industry_code", name="uq_profile_industry"),
-        Index("ix_enterprise_industry_industry_profile", "industry_code", "profile_id"),
+        UniqueConstraint(
+            "profile_id", 
+            "industry_code", 
+            name="uq_pnc_profile_industry"
+        ),
         Index(
-            "uq_enterprise_industry_primary",
+            "ix_pnc_enterprise_industry_industry_profile",
+            "industry_code",
+            "profile_id"
+        ),
+        Index(
+            "ix_pnc_enterprise_industry_primary",
             "profile_id",
             unique=True,
             sqlite_where=text("is_primary = 1"),
@@ -518,13 +526,30 @@ class EnterpriseIndustry(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
-    industry_code: Mapped[str] = mapped_column(ForeignKey("pnc_industry.code"), nullable=False)
-    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer, 
+        primary_key=True,
+        autoincrement=True)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False
+    )
+    industry_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_industry.code"),
+        nullable=False
+    )
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False, 
+        nullable=False
+    )
 
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="industries")
-    industry_ref: Mapped["Industry"] = relationship(back_populates="enterprise_links")
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="industries"
+    )
+    industry_ref: Mapped["Industry"] = relationship(
+        back_populates="enterprise_links"
+    )
 
 
 # Материалы и продукция

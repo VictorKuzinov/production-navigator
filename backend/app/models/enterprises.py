@@ -5,12 +5,14 @@ from typing import TYPE_CHECKING, Optional
 
 # Сторонние пакеты
 from sqlalchemy import (
+    Boolean,
     Date,
     ForeignKey,
     Index,
     Integer,
     String,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -44,13 +46,25 @@ class Industry(Base, PNCBaseReference):
         back_populates="industry_ref",
     )
 
+    enterprise_links: Mapped[list["EnterpriseIndustry"]] = relationship(
+        back_populates="industry_ref",
+    )
+
 
 class CompanySize(Base, PNCBaseReference):
     __tablename__ = "pnc_company_size"
 
+    profiles: Mapped[list["EnterpriseProfile"]] = relationship(
+        back_populates="size_ref"
+    )
+
 
 class Region(Base, PNCBaseReference):
     __tablename__ = "pnc_region"
+
+    profiles: Mapped[list["EnterpriseProfile"]] = relationship(
+        back_populates="region_ref",
+    )
 
 
 class EnterpriseProfile(Base):
@@ -112,25 +126,32 @@ class EnterpriseProfile(Base):
         back_populates="profile", cascade="all, delete-orphan"
     )
     lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
+        back_populates="profile",
+        cascade="all, delete-orphan"
     )
     transports: Mapped[list["Transport"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
+        back_populates="profile",
+        cascade="all, delete-orphan"
     )
     equipments: Mapped[list["Equipment"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
+        back_populates="profile",
+        cascade="all, delete-orphan"
     )
     products: Mapped[list["Product"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
+        back_populates="profile",
+        cascade="all, delete-orphan"
     )
     certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
+        back_populates="profile",
+        cascade="all, delete-orphan"
     )
-    # industries: Mapped[list["EnterpriseIndustry"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
+    industries: Mapped[list["EnterpriseIndustry"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan"
+    )
     orders: Mapped[list["ProductionOrder"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
+        back_populates="profile",
+        cascade="all, delete-orphan"
     )
     # quality_capability: Mapped[Optional["QualityCapability"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan", single_parent=True
@@ -180,10 +201,51 @@ class EnterpriseCertificate(Base):
         Date,
         nullable=False,
     )
-
     profile: Mapped["EnterpriseProfile"] = relationship(
         back_populates="certificates",
     )
     type_ref: Mapped["CertificateType"] = relationship(
         back_populates="certificates",
+    )
+
+class EnterpriseIndustry(Base):
+    __tablename__ = "pnc_enterprise_industry"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "industry_code",
+            name="uq_pnc_enterprise_industry_profile_industry"
+        ),
+        Index(
+            "ix_pnc_enterprise_industry_primary",
+            "profile_id",
+            unique=True,
+            postgresql_where=text("is_primary IS TRUE"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False
+    )
+    industry_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_industry.code"),
+        nullable=False
+    )
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="industries"
+    )
+    industry_ref: Mapped["Industry"] = relationship(
+        back_populates="enterprise_links"
     )
