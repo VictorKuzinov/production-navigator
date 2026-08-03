@@ -158,9 +158,20 @@ Industry
 CompanySize
 Region
 EnterpriseProfile
-QualityCapability
 EnterpriseCertificate
 EnterpriseIndustry
+QualityCapability
+```
+```text
+EnterpriseProfile
+        │
+        └─────── 1 : 1 ───────► QualityCapability
+                                  │
+                                  ├── min_it_grade
+                                  ├── min_ra
+                                  ├── measuring_tools
+                                  ├── cim_machine
+                                  └── notes
 ```
 
 ### 4.4. `productions.py`

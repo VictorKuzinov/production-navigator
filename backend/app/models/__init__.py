@@ -6,6 +6,7 @@ from app.models.enterprises import (
     EnterpriseIndustry,
     EnterpriseProfile,
     Industry,
+    QualityCapability,
     Region,
 )
 from app.models.equipments import Equipment, EquipmentType
@@ -58,4 +59,5 @@ __all__ = [
     "EnterpriseCertificate",
     "EnterpriseProfile",
     "EnterpriseIndustry",
+    "QualityCapability",
 ]

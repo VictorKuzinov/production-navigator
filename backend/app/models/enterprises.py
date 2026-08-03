@@ -7,10 +7,12 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import (
     Boolean,
     Date,
+    Float,
     ForeignKey,
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -153,9 +155,11 @@ class EnterpriseProfile(Base):
         back_populates="profile",
         cascade="all, delete-orphan"
     )
-    # quality_capability: Mapped[Optional["QualityCapability"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan", single_parent=True
-    # )
+    quality_capability: Mapped[Optional["QualityCapability"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        single_parent=True,
+    )
 
 
 class EnterpriseCertificate(Base):
@@ -248,4 +252,26 @@ class EnterpriseIndustry(Base):
     )
     industry_ref: Mapped["Industry"] = relationship(
         back_populates="enterprise_links"
+    )
+
+class QualityCapability(Base):
+    __tablename__ = "pnc_quality_capability"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # unique=True уже создает уникальный индекс; отдельный Index здесь не нужен.
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"), nullable=False, unique=True
+    )
+    min_it_grade: Mapped[int | None] = mapped_column(Integer)
+    min_ra: Mapped[float | None] = mapped_column(Float)
+    measuring_tools: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    cim_machine: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="quality_capability"
     )

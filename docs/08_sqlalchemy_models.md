@@ -281,18 +281,34 @@ class EnterpriseProfile(Base):
 class QualityCapability(Base):
     __tablename__ = "pnc_quality_capability"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
     # unique=True уже создает уникальный индекс; отдельный Index здесь не нужен.
     profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False, unique=True
+        ForeignKey("pnc_enterprise_profile.id"), 
+        nullable=False, 
+        unique=True
     )
-    min_it_grade: Mapped[Optional[int]] = mapped_column(Integer)
-    min_ra: Mapped[Optional[float]] = mapped_column(Float)
-    measuring_tools: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    cim_machine: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    notes: Mapped[Optional[str]] = mapped_column(Text)
+    min_it_grade: Mapped[int | None] = mapped_column(Integer)
+    min_ra: Mapped[float | None] = mapped_column(Float)
+    measuring_tools: Mapped[bool] = mapped_column(
+        Boolean, 
+        default=False, 
+        nullable=False
+    )
+    cim_machine: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
 
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="quality_capability")
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="quality_capability"
+    )
 
 
 class ProductionFacility(Base):
