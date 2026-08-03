@@ -132,13 +132,17 @@ class TechnologyType(Base, PNCBaseReference):
 class MaterialGroup(Base, PNCBaseReference):
     __tablename__ = "pnc_material_group"
 
-    materials: Mapped[List["Material"]] = relationship(back_populates="group_ref")
+    materials: Mapped[list["Material"]] = relationship(
+        back_populates="group_ref"
+    )
 
 
 class MaterialForm(Base, PNCBaseReference):
     __tablename__ = "pnc_material_form"
 
-    material_items: Mapped[List["MaterialItem"]] = relationship(back_populates="form_ref")
+    material_items: Mapped[list["MaterialItem"]] = relationship(
+        back_populates="form_ref"
+    )
 
 
 class ProductType(Base, PNCBaseReference):
@@ -507,9 +511,9 @@ class EnterpriseIndustry(Base):
 class Material(Base):
     __tablename__ = "pnc_material"
     __table_args__ = (
-        UniqueConstraint("group_code", "grade_name", name="uq_material_group_grade"),
-        Index("ix_material_group_code", "group_code"),
-        Index("ix_material_grade_name", "grade_name"),
+        UniqueConstraint("group_code", "grade_name", name="uq_pnc_material_group_grade"),
+        Index("ix_pnc_material_group_code", "group_code"),
+        Index("ix_pnc_material_grade_name", "grade_name"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -531,22 +535,42 @@ class MaterialItem(Base):
             "material_form_code",
             "dimension_1",
             "unit_of_measure",
-            name="uq_material_item_form_dimension_unit",
+            name="uq_pnc_material_item_form_dimension_unit",
         ),
-        Index("ix_material_item_material_form", "material_id", "material_form_code"),
+        Index(
+            "ix_pnc_material_item_material_form", 
+            "material_id", 
+            "material_form_code"
+        ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    material_id: Mapped[int] = mapped_column(ForeignKey("pnc_material.id"), nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer, 
+        primary_key=True, 
+        autoincrement=True)
+    material_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_material.id"), 
+        nullable=False
+    )
     material_form_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_material_form.code"), nullable=False
+        ForeignKey("pnc_material_form.code"), 
+        nullable=False
     )
     dimension_1: Mapped[Optional[float]] = mapped_column(Float)
-    unit_of_measure: Mapped[str] = mapped_column(String(20), nullable=False)
+    unit_of_measure: Mapped[str] = mapped_column(
+        String(20), 
+        nullable=False
+    )
 
-    material: Mapped["Material"] = relationship(back_populates="items")
-    form_ref: Mapped["MaterialForm"] = relationship(back_populates="material_items")
-    products: Mapped[List["Product"]] = relationship(back_populates="material_item")
+    material: Mapped["Material"] = relationship(
+        back_populates="items"
+    )
+    form_ref: Mapped["MaterialForm"] = relationship(
+        back_populates="material_items"
+    )
+    products: Mapped[List["Product"]] = relationship(
+        back_populates="material_item"
+    )
 
 
 class Product(Base):
