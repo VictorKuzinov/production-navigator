@@ -1,10 +1,13 @@
-from typing import Optional
+# materiald.py
+## Стандартные библиотеки
 
-from sqlalchemy import UniqueConstraint, Index, String, Integer, ForeignKey, Float
+# Сторонние пакеты
+from sqlalchemy import Float, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 from app.models.base_reference import PNCBaseReference
+from app.models.products import Product
 
 
 class MaterialGroup(Base, PNCBaseReference):
@@ -109,6 +112,6 @@ class MaterialItem(Base):
     form_ref: Mapped["MaterialForm"] = relationship(
         back_populates="material_items"
     )
-    # products: Mapped[list["Product"]] = relationship(
-    #     back_populates="material_item"
-    # )
+    products: Mapped[list["Product"]] = relationship(
+        back_populates="material_item"
+    )

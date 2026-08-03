@@ -576,28 +576,70 @@ class MaterialItem(Base):
 class Product(Base):
     __tablename__ = "pnc_product"
     __table_args__ = (
-        UniqueConstraint("profile_id", "sku_code", name="uq_product_profile_sku"),
-        Index("ix_product_profile_type", "profile_id", "product_type_code"),
-        Index("ix_product_material_item_id", "material_item_id"),
-        Index("ix_product_name", "name"),
+        UniqueConstraint(
+            "profile_id", 
+            "sku_code", 
+            name="uq_pnc_product_profile_sku"
+        ),
+        Index(
+            "ix_pnc_product_profile_type", 
+            "profile_id", 
+            "product_type_code"
+        ),
+        Index(
+            "ix_pnc_product_material_item_id",
+            "material_item_id"
+        ),
+        Index(
+            "ix_pnc_product_name", 
+            "name"
+        ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(ForeignKey("pnc_enterprise_profile.id"), nullable=False)
-    product_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_product_type.code"), nullable=False
+    id: Mapped[int] = mapped_column(
+        Integer, 
+        primary_key=True, 
+        autoincrement=True
     )
-    material_item_id: Mapped[int] = mapped_column(ForeignKey("pnc_material_item.id"), nullable=False)
-    sku_code: Mapped[str] = mapped_column(String(100), nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    weight_net: Mapped[float] = mapped_column(Float, nullable=False)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"), 
+        nullable=False
+    )
+    product_type_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_product_type.code"), 
+        nullable=False
+    )
+    material_item_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_material_item.id"),
+        nullable=False
+    )
+    sku_code: Mapped[str] = mapped_column(
+        String(100), 
+        nullable=False
+    )
+    name: Mapped[str] = mapped_column(
+        String(255), 
+        nullable=False
+    )
+    weight_net: Mapped[float] = mapped_column(
+        Float, 
+        nullable=False
+    )
     required_it_grade: Mapped[Optional[int]] = mapped_column(Integer)
     required_ra: Mapped[Optional[float]] = mapped_column(Float)
 
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="products")
-    type_ref: Mapped["ProductType"] = relationship(back_populates="products")
-    material_item: Mapped["MaterialItem"] = relationship(back_populates="products")
-    orders: Mapped[List["ProductionOrder"]] = relationship(back_populates="product")
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="products"
+    )
+    type_ref: Mapped["ProductType"] = relationship(
+        back_populates="products"
+    )
+    material_item: Mapped["MaterialItem"] = relationship(
+        back_populates="products"
+    )
+    orders: Mapped[list["ProductionOrder"]] = relationship(
+        back_populates="product"
+    )
 
 
 class ProductionOrder(Base):

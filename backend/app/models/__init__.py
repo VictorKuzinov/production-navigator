@@ -25,7 +25,7 @@ from app.models.productions import (
     Warehouse,
     WarehouseType,
 )
-from app.models.products import ProductType
+from app.models.products import Product, ProductType
 
 __all__ = [
     "TechnologyType",
@@ -51,4 +51,5 @@ __all__ = [
     "Transport",
     "MaterialGroup",
     "Material",
+    "Product",
 ]

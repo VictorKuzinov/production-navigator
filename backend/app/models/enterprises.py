@@ -15,6 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 # Локальные пакеты
 from app.db.database import Base
 from app.models.base_reference import PNCBaseReference
+from app.models.products import Product
 
 if TYPE_CHECKING:
     from app.models.equipments import Equipment
@@ -81,9 +82,9 @@ class EnterpriseProfile(Base):
     equipments: Mapped[list["Equipment"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
-    # products: Mapped[list["Product"]] = relationship(
-    #     back_populates="profile", cascade="all, delete-orphan"
-    # )
+    products: Mapped[list["Product"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
     # certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
     #     back_populates="profile", cascade="all, delete-orphan"
     # )
