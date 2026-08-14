@@ -2,35 +2,29 @@
 
 ## Назначение документа
 
-Документ фиксирует фактически реализованный ORM-слой проекта «Производственный навигатор» после создания и проверки миграций Alembic. Все таблицы предметной области используют префикс `pnc_`; имена ограничений и индексов приведены к тому же соглашению.
+Документ фиксирует целевую ORM-модель проекта «Производственный навигатор». Все таблицы предметной области используют префикс `pnc_`; имена ограничений и индексов приведены к тому же соглашению. Наличие модели в целевой документации не заменяет проверку фактического кода и миграций перед внедрением.
 
-## Статус реализации
+## Статус реализации и граница документа
 
-Все запланированные справочники, основные сущности, связи и миграции первого этапа готовы.
+В целевую модель входят корпоративные справочники PNC, внешний иерархический классификатор `OKVED`, основные сущности и связи производственного профиля. `OKVED` не наследует `PNCBaseReference`.
 
-| Справочник | ORM-модель | Миграция | Финальные связи | Статус |
-|---|:---:|:---:|:---:|---|
-| `TechnologyType` | ✅ | ✅ | ✅ | Готово |
-| `MaterialGroup` | ✅ | ✅ | ✅ | Готово |
-| `MaterialForm` | ✅ | ✅ | ✅ | Готово |
-| `ProductType` | ✅ | ✅ | ✅ | Готово |
-| `EquipmentType` | ✅ | ✅ | ✅ | Готово |
-| `CraneType` | ✅ | ✅ | ✅ | Готово |
-| `TransportType` | ✅ | ✅ | ✅ | Готово |
-| `TransportScope` | ✅ | ✅ | ✅ | Готово |
-| `TransportOwnershipType` | ✅ | ✅ | ✅ | Готово |
-| `WarehouseType` | ✅ | ✅ | ✅ | Готово |
-| `CertificateType` | ✅ | ✅ | ✅ | Готово |
-| `Industry` | ✅ | ✅ | ✅ | Готово |
-| `OrderType` | ✅ | ✅ | ✅ | Готово |
-| `CompanySize` | ✅ | ✅ | ✅ | Готово |
-| `Region` | ✅ | ✅ | ✅ | Готово |
+Целевая документация и состояние реализации — разные вещи. Приведённый ниже
+код задаёт согласованную целевую ORM, но не доказывает, что каждая модель
+закоммичена, каждая миграция проверена и применена к конкретной базе данных.
 
-Основные сущности также готовы: `EnterpriseProfile`, `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`, `Transport`, `Material`, `MaterialItem`, `Product`, `ProductionOrder`, `EnterpriseCertificate`, `EnterpriseIndustry` и `QualityCapability`.
+Снимок рабочего дерева на 2026-08-14:
 
-## Финальная ORM-модель
+| Область | Целевая документация | Наблюдаемое состояние backend | Интерпретация |
+|---------|-----------------------|-------------------------------|--------------|
+| Корпоративные PNC-справочники | Описаны | ORM-модели и соответствующие миграции присутствуют | Наличие файлов не заменяет проверку состояния БД |
+| Основные сущности производственного профиля | Описаны | ORM-модели и миграции присутствуют | Готовность конкретного развёртывания этим документом не подтверждается |
+| `OKVED` и `EnterpriseOKVED` | Входят в целевую модель | Модели и кандидатная миграция присутствуют в незакоммиченном рабочем дереве | Изменения нельзя считать завершёнными только по наличию файлов |
 
-Код ниже отражает итоговые таблицы, ограничения, индексы и двусторонние связи. Для обычных типов используются современные аннотации `T | None` и `list[T]`. Для ссылок на классы, объявленные ниже, вся аннотация помещается в строку; это не допускает вычисления выражения вида `"ClassName" | None` во время импорта.
+Основные сущности целевой модели: `EnterpriseProfile`, `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`, `Transport`, `Material`, `MaterialItem`, `Product`, `ProductionOrder`, `EnterpriseCertificate`, `EnterpriseIndustry`, `EnterpriseOKVED` и `QualityCapability`.
+
+## Целевая ORM-модель
+
+Код ниже отражает целевые таблицы, ограничения, индексы и двусторонние связи. Для обычных типов используются современные аннотации `T | None` и `list[T]`. Для ссылок на классы, объявленные ниже, вся аннотация помещается в строку; это не допускает вычисления выражения вида `"ClassName" | None` во время импорта.
 
 ```python
 from datetime import date
@@ -63,6 +57,31 @@ class PNCBaseReference:
     ref_system: Mapped[str] = mapped_column(String(100), nullable=False)
     ref_code: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
+
+
+class OKVED(Base):
+    """Локальное иерархическое представление внешнего классификатора ОКВЭД."""
+
+    __tablename__ = "pnc_okved"
+    __table_args__ = (
+        Index("ix_pnc_okved_parent_code", "parent_code"),
+    )
+
+    code: Mapped[str] = mapped_column(String(10), primary_key=True)
+    name_ru: Mapped[str] = mapped_column(String(500), nullable=False)
+    parent_code: Mapped[str | None] = mapped_column(
+        ForeignKey("pnc_okved.code")
+    )
+    level: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    children: Mapped[list["OKVED"]] = relationship(back_populates="parent")
+    parent: Mapped["OKVED | None"] = relationship(
+        back_populates="children",
+        remote_side=[code],
+    )
+    enterprises: Mapped[list["EnterpriseOKVED"]] = relationship(
+        back_populates="okved"
+    )
 
 
 class EquipmentType(Base, PNCBaseReference):
@@ -218,6 +237,9 @@ class EnterpriseProfile(Base):
         back_populates="profile", cascade="all, delete-orphan"
     )
     industries: Mapped[list["EnterpriseIndustry"]] = relationship(
+        back_populates="profile", cascade="all, delete-orphan"
+    )
+    okveds: Mapped[list["EnterpriseOKVED"]] = relationship(
         back_populates="profile", cascade="all, delete-orphan"
     )
     orders: Mapped[list["ProductionOrder"]] = relationship(
@@ -496,6 +518,32 @@ class EnterpriseIndustry(Base):
     )
 
 
+class EnterpriseOKVED(Base):
+    __tablename__ = "pnc_enterprise_okved"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "okved_code",
+            name="uq_enterprise_okved",
+        ),
+        Index("ix_pnc_enterprise_okved_code", "okved_code"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"), nullable=False
+    )
+    okved_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_okved.code"), nullable=False
+    )
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="okveds")
+    okved: Mapped["OKVED"] = relationship(back_populates="enterprises")
+
+
 class Material(Base):
     __tablename__ = "pnc_material"
     __table_args__ = (
@@ -628,13 +676,20 @@ class ProductionOrder(Base):
 - `Warehouse.__table_args__` — одноэлементный кортеж. Запятая после `Index(...)` обязательна; приведённый вариант синтаксически корректен.
 - `EnterpriseIndustry` содержит только PostgreSQL-вариант частичного уникального индекса `ix_pnc_enterprise_industry_primary` с условием `is_primary IS TRUE`. Он гарантирует не более одной основной отрасли на профиль. `sqlite_where` намеренно отсутствует.
 - Пара `(profile_id, industry_code)` в `EnterpriseIndustry` защищена ограничением `uq_pnc_enterprise_industry_profile_industry`.
+- `EnterpriseIndustry.is_primary` означает основной отраслевой рынок предприятия в терминах PNC. `EnterpriseOKVED.is_primary` означает основной зарегистрированный вид экономической деятельности. Эти признаки имеют разную семантику и не синхронизируются автоматически.
+- Пара `(profile_id, okved_code)` в `EnterpriseOKVED` защищена ограничением `uq_enterprise_okved`. Текущая целевая схема не содержит частичного уникального индекса, ограничивающего профиль одним `EnterpriseOKVED.is_primary`; способ обеспечения этого инварианта требует отдельного решения.
+- `OKVED` имеет собственную иерархическую структуру `code`, `name_ru`, `parent_code`, `level` и не наследует `PNCBaseReference`. Префикс таблицы `pnc_` является соглашением об именовании таблиц, а не признаком принадлежности к корпоративному классификатору PNC.
+- ORM-модели не содержат провайдерских сущностей или полей `api-fns.ru`. Внешний JSON должен быть нормализован до обращения к ORM, поэтому замена поставщика регистрационных сведений не требует изменения `EnterpriseProfile`, `EnterpriseOKVED` или `OKVED`.
+- Целевой импорт по ИНН может сохранять подтверждённые реквизиты `EnterpriseProfile` и связи `EnterpriseOKVED`, но соответствующие нормализованная схема, сервис импорта и API endpoint в текущей реализации отсутствуют. Источник и время импорта текущей ORM-схемой также не фиксируются.
+- Автоматическое сопоставление `OKVED ↔ Industry` отсутствует. Основной ОКВЭД не назначает основную отрасль PNC.
+- `ProductionOrder.industry_code` описывает отрасль конечного применения или рыночный сегмент заказа, а не ОКВЭД предприятия-исполнителя. В целевой модели поле пока остаётся обязательным, однако источник его значения для входящего заказа не определён и вынесен в backlog вместе с проверкой обязательности.
 - Для связи `EnterpriseProfile` ↔ `QualityCapability` используется отношение 1:1: `profile_id` имеет `unique=True`, а родительская связь — `cascade="all, delete-orphan"` и `single_parent=True`. Отдельный дублирующий `Index` не нужен.
-- `Region.profiles`, `CompanySize.profiles`, `CertificateType.certificates`, `Industry.enterprise_links` и остальные обратные стороны `back_populates` восстановлены; временно закомментированных отношений в финальной схеме нет.
+- `Region.profiles`, `CompanySize.profiles`, `CertificateType.certificates`, `Industry.enterprise_links` и остальные обратные стороны `back_populates` присутствуют в целевой схеме; временно закомментированных отношений в приведённом целевом коде нет.
 - ИНН и ОГРН хранятся как строки, поскольку это идентификаторы, а не числа для вычислений.
 - Уникальность материала определяется парой `(group_code, grade_name)`. Уникальность варианта материала учитывает материал, форму, размер и единицу измерения.
 - Повторно выданные сертификаты одного типа допустимы, но полный дубль по профилю, типу, дате выдачи и дате окончания запрещён.
-- Все миграции первого этапа проверены; для последней миграции `QualityCapability` достаточно удалить таблицу в `downgrade()`, поскольку отдельные пользовательские индексы не создаются.
+- Наличие миграций в рабочем дереве не означает, что они проверены, закоммичены или применены к PostgreSQL. Состояние цепочки, `upgrade()`, `downgrade()` и фактической базы проверяется отдельно перед внедрением; этот документ не фиксирует все миграции как завершённые.
 
 ## Экспорт моделей
 
-`app.models` должен экспортировать каждую реализованную модель ровно один раз. 
+`app.models` должен экспортировать каждую реализованную модель ровно один раз.

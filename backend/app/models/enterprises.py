@@ -24,6 +24,7 @@ from app.models.base_reference import PNCBaseReference
 
 if TYPE_CHECKING:
     from app.models.equipments import Equipment
+    from app.models.okved import OKVED
     from app.models.orders import ProductionOrder
     from app.models.productions import (
         LiftingEquipment,
@@ -160,6 +161,10 @@ class EnterpriseProfile(Base):
         cascade="all, delete-orphan",
         single_parent=True,
     )
+    okveds: Mapped[list["EnterpriseOKVED"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+    )
 
 
 class EnterpriseCertificate(Base):
@@ -274,4 +279,50 @@ class QualityCapability(Base):
 
     profile: Mapped["EnterpriseProfile"] = relationship(
         back_populates="quality_capability"
+    )
+
+
+class EnterpriseOKVED(Base):
+    __tablename__ = "pnc_enterprise_okved"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id",
+            "okved_code",
+            name="uq_enterprise_okved",
+        ),
+        Index(
+            "ix_pnc_enterprise_okved_code",
+            "okved_code",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("pnc_enterprise_profile.id"),
+        nullable=False,
+    )
+
+    okved_code: Mapped[str] = mapped_column(
+        ForeignKey("pnc_okved.code"),
+        nullable=False,
+    )
+
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    profile: Mapped["EnterpriseProfile"] = relationship(
+        back_populates="okveds",
+    )
+
+    okved: Mapped["OKVED"] = relationship(
+        back_populates="enterprises",
     )

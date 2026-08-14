@@ -1,0 +1,19 @@
+class EnterpriseProfileNotFoundError(Exception):
+    """Enterprise profile not found."""
+    pass
+
+class DuplicateInnError(Exception):
+    """Duplicate inn found."""
+    pass
+
+class DuplicateOgrnError(Exception):
+    """Duplicate ogrn found."""
+    pass
+
+class CompanySizeNotFoundError(Exception):
+    """Company size not found."""
+    pass
+
+class RegionNotFoundError(Exception):
+    """Region not found."""
+    pass

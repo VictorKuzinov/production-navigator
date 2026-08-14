@@ -17,10 +17,13 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_password: str
 
+    api_fns_key: str
+    url_fns: str
+
     @property
     def database_url(self) -> str:
         return (
-            f"postgresql+psycopg://{self.postgres_user}:"
+            f"postgresql+asyncpg://{self.postgres_user}:"
             f"{self.postgres_password}@{self.postgres_host}:"
             f"{self.postgres_port}/{self.postgres_db}"
         )

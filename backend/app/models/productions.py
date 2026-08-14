@@ -102,20 +102,20 @@ class LiftingEquipment(Base):
     __tablename__ = "pnc_lifting_equipment"
     __table_args__ = (
         Index(
-            "ix_pnc_lifting_profile_type",
+            "ix_pnc_lifting_equipment_profile_type",
             "profile_id",
             "crane_type_code",
         ),
         Index(
-            "ix_pnc_lifting_facility_id",
+            "ix_pnc_lifting_equipment_facility_id",
             "facility_id",
         ),
         Index(
-            "ix_pnc_lifting_warehouse_id",
+            "ix_pnc_lifting_equipment_warehouse_id",
             "warehouse_id",
         ),
         Index(
-            "ix_pnc_lifting_load_capacity",
+            "ix_pnc_lifting_equipment_load_capacity",
             "load_capacity_tons",
         ),
     )
