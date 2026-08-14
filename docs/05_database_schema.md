@@ -20,6 +20,7 @@ app/models/
 ├── __init__.py
 ├── base_reference.py
 ├── pnc_reference.py
+├── okved.py
 ├── enterprises.py
 ├── productions.py
 ├── materials.py
@@ -36,11 +37,17 @@ app/models/
 - `materials.py`, `products.py` и `orders.py` также используются во множественном числе;
 - имена ORM-классов остаются в единственном числе: `Equipment`, `Product`, `ProductionOrder`.
 
-## 3. Этапы реализации моделей
+## 3. Рекомендуемый workflow реализации новых моделей
 
-Модели реализуются постепенно. Окончательные двусторонние связи не требуется добавлять до появления обеих зависимых сущностей.
+Ниже описан общий поэтапный шаблон для разработки новой группы моделей, а не
+текущий статус уже описанных сущностей. Фактический состав целевой ORM
+определяется `08_sqlalchemy_models.md`, а наличие конкретных классов в рабочем
+дереве проверяется по `backend/app/models/`.
 
-### 3.1. Первый этап — независимые справочники
+При постепенной реализации окончательные двусторонние связи не требуется
+добавлять до появления обеих зависимых сущностей.
+
+### 3.1. Первый шаг — независимые справочники
 
 Сначала создаются таблицы справочников PNC без `relationship()`:
 
@@ -57,7 +64,7 @@ class ProductType(Base, PNCBaseReference):
 4. применить её к базе данных;
 5. зафиксировать законченный шаг отдельным коммитом.
 
-### 3.2. Второй этап — зависимые сущности
+### 3.2. Следующий шаг — зависимые сущности
 
 После появления основной сущности добавляются внешний ключ и обе стороны ORM-связи.
 
@@ -71,7 +78,7 @@ class ProductType(Base, PNCBaseReference):
 
 
 class Product(Base):
-    __tablename__ = "product"
+    __tablename__ = "pnc_product"
 
     product_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_product_type.code"),
@@ -131,9 +138,21 @@ class PNCBaseReference:
 
 `PNCBaseReference` не создаёт отдельную таблицу. Его поля наследуются конкретными справочниками.
 
+Смысл полей един для всех корпоративных справочников PNC:
+
+- `code` — стабильный внутренний бизнес-идентификатор Production Navigator;
+- `name_ru` — русское отображаемое название;
+- `ics_section` — соответствующий раздел ISO ICS, когда применимо;
+- `ref_system` — внешняя классификационная или нормативная система;
+- `ref_code` — идентификатор значения во внешней системе;
+- `description` — содержательное описание значения и области применения.
+
+`code` и `ref_code` не взаимозаменяемы. Например, внутренний `PNC_REG_66` может быть сопоставлен с `ISO 3166-2 / RU-SVE`. Внешний классификатор `OKVED` имеет другую структуру и не наследует `PNCBaseReference`.
+
 ### 4.2. `pnc_reference.py`
 
-Содержит самостоятельные PNC-справочники, которые пока не относятся к отдельному реализованному доменному модулю:
+Содержит самостоятельные PNC-справочники, которые по целевому распределению не
+относятся к специализированному доменному модулю:
 
 ```text
 TechnologyType
@@ -160,6 +179,7 @@ Region
 EnterpriseProfile
 EnterpriseCertificate
 EnterpriseIndustry
+EnterpriseOKVED
 QualityCapability
 ```
 ```text
@@ -174,7 +194,36 @@ EnterpriseProfile
                                   └── notes
 ```
 
-### 4.4. `productions.py`
+`EnterpriseIndustry` связывает профиль с обслуживаемыми отраслевыми рынками PNC. `EnterpriseOKVED` связывает тот же профиль с официально зарегистрированными видами деятельности. Их признаки `is_primary` имеют разный смысл и не являются дублями.
+
+### 4.4. `okved.py`
+
+Содержит локальное иерархическое представление внешнего классификатора ОКВЭД:
+
+```text
+OKVED
+├── code
+├── name_ru
+├── parent_code
+└── level
+```
+
+```text
+EnterpriseProfile 1 ─── N EnterpriseOKVED N ─── 1 OKVED
+OKVED             1 ─── N OKVED.children
+```
+
+Модель `OKVED` хранится в `okved.py`; связующая модель `EnterpriseOKVED` относится к профилю предприятия и находится в `enterprises.py`. `EnterpriseOKVED` не дублирует `name_ru`: название получается через отношение к `OKVED`.
+
+ORM-схема не зависит от провайдера регистрационных сведений: таблицы или поля с
+контрактом `api-fns.ru` в доменную БД не добавляются. Нормализация внешнего JSON
+и правила импорта относятся к интеграционному и прикладному слоям. После
+подтверждения пользователя они могут изменять только согласованные реквизиты
+`EnterpriseProfile` и связи `EnterpriseOKVED`; `EnterpriseIndustry` и сущности
+производственного профиля из такого ответа не создаются. Отдельная схема аудита
+источника и времени импорта пока не спроектирована.
+
+### 4.5. `productions.py`
 
 Содержит модели производственной и логистической инфраструктуры:
 
@@ -190,7 +239,7 @@ LiftingEquipment
 Transport
 ```
 
-### 4.5. `materials.py`
+### 4.6. `materials.py`
 
 Содержит справочники и сущности материалов:
 
@@ -201,7 +250,8 @@ Material
 MaterialItem
 ```
 
-На первом этапе справочники реализуются независимо:
+При разработке новой группы моделей справочники могут сначала реализовываться
+независимо:
 
 ```python
 class MaterialGroup(Base, PNCBaseReference):
@@ -212,9 +262,11 @@ class MaterialForm(Base, PNCBaseReference):
     __tablename__ = "pnc_material_form"
 ```
 
-Модели `Material` и `MaterialItem`, их внешние ключи и `relationship()` добавляются на следующем этапе.
+Затем к ним могут быть добавлены `Material` и `MaterialItem`, внешние ключи и
+`relationship()`. Это пример порядка реализации, а не описание текущего статуса:
+в целевую ORM из `08_sqlalchemy_models.md` входят все четыре модели.
 
-### 4.6. `equipments.py`
+### 4.7. `equipments.py`
 
 Содержит:
 
@@ -223,14 +275,15 @@ EquipmentType
 Equipment
 ```
 
-Первоначальная независимая модель справочника:
+Пример первоначальной независимой модели справочника в таком workflow:
 
 ```python
 class EquipmentType(Base, PNCBaseReference):
     __tablename__ = "pnc_equipment_type"
 ```
 
-После появления `EnterpriseProfile`, `ProductionFacility` и `Equipment` справочник получает обратную связь:
+В рамках поэтапного шаблона после появления `EnterpriseProfile`,
+`ProductionFacility` и `Equipment` справочник получает обратную связь:
 
 ```python
 from typing import TYPE_CHECKING
@@ -255,15 +308,15 @@ class EquipmentType(Base, PNCBaseReference):
 
 
 class Equipment(Base):
-    __tablename__ = "equipment"
+    __tablename__ = "pnc_equipment"
     __table_args__ = (
         Index(
-            "ix_equipment_profile_type",
+            "ix_pnc_equipment_profile_type",
             "profile_id",
             "equipment_type_code",
         ),
         Index(
-            "ix_equipment_facility_type",
+            "ix_pnc_equipment_facility_type",
             "facility_id",
             "equipment_type_code",
         ),
@@ -275,11 +328,11 @@ class Equipment(Base):
         autoincrement=True,
     )
     profile_id: Mapped[int] = mapped_column(
-        ForeignKey("enterprise_profile.id"),
+        ForeignKey("pnc_enterprise_profile.id"),
         nullable=False,
     )
     facility_id: Mapped[int] = mapped_column(
-        ForeignKey("production_facility.id"),
+        ForeignKey("pnc_production_facility.id"),
         nullable=False,
     )
     equipment_type_code: Mapped[str] = mapped_column(
@@ -320,7 +373,7 @@ from app.models.enterprises import EnterpriseProfile
 from app.models.productions import ProductionFacility
 ```
 
-### 4.7. `products.py`
+### 4.8. `products.py`
 
 Содержит:
 
@@ -329,9 +382,11 @@ ProductType
 Product
 ```
 
-На первом этапе создаётся только `ProductType`. После реализации `Product` добавляются внешний ключ и двусторонняя связь.
+При поэтапной реализации сначала может быть создан `ProductType`, а после
+появления `Product` — добавлены внешний ключ и двусторонняя связь. В целевой ORM
+обе модели уже входят в одну согласованную структуру.
 
-### 4.8. `orders.py`
+### 4.9. `orders.py`
 
 Содержит:
 
@@ -340,28 +395,91 @@ OrderType
 ProductionOrder
 ```
 
-На первом этапе создаётся только `OrderType`. Связь `OrderType.orders` добавляется после реализации `ProductionOrder`.
+При поэтапной реализации сначала может быть создан `OrderType`, а связь
+`OrderType.orders` — после появления `ProductionOrder`. В целевой ORM обе модели
+уже входят в одну согласованную структуру.
 
 ## 5. Регистрация моделей
 
 Alembic работает с `Base.metadata`, но видит только те модели, модули которых были импортированы.
 
-`app/models/__init__.py` должен экспортировать уже реализованные модели:
+`app/models/__init__.py` должен экспортировать каждую фактически присутствующую
+модель ровно один раз. Ниже приведён полный снимок наблюдаемого экспорта в
+рабочем дереве на 2026-08-14, а не сокращённый концептуальный фрагмент:
 
 ```python
-from app.models.materials import MaterialForm, MaterialGroup
+from app.models.enterprises import (
+    CertificateType,
+    CompanySize,
+    EnterpriseCertificate,
+    EnterpriseIndustry,
+    EnterpriseOKVED,
+    EnterpriseProfile,
+    Industry,
+    QualityCapability,
+    Region,
+)
+from app.models.equipments import Equipment, EquipmentType
+from app.models.materials import (
+    Material,
+    MaterialForm,
+    MaterialGroup,
+    MaterialItem,
+)
+from app.models.okved import OKVED
+from app.models.orders import OrderType, ProductionOrder
 from app.models.pnc_reference import TechnologyType
-from app.models.products import ProductType
+from app.models.productions import (
+    CraneType,
+    LiftingEquipment,
+    ProductionFacility,
+    Transport,
+    TransportOwnershipType,
+    TransportScope,
+    TransportType,
+    Warehouse,
+    WarehouseType,
+)
+from app.models.products import Product, ProductType
 
 __all__ = [
-    "MaterialForm",
-    "MaterialGroup",
-    "ProductType",
     "TechnologyType",
+    "MaterialGroup",
+    "MaterialForm",
+    "Material",
+    "MaterialItem",
+    "ProductType",
+    "Product",
+    "OrderType",
+    "ProductionOrder",
+    "EquipmentType",
+    "Equipment",
+    "CertificateType",
+    "Industry",
+    "CompanySize",
+    "Region",
+    "EnterpriseProfile",
+    "EnterpriseCertificate",
+    "EnterpriseIndustry",
+    "QualityCapability",
+    "CraneType",
+    "TransportType",
+    "TransportScope",
+    "TransportOwnershipType",
+    "WarehouseType",
+    "ProductionFacility",
+    "Warehouse",
+    "LiftingEquipment",
+    "Transport",
+    "OKVED",
+    "EnterpriseOKVED",
 ]
 ```
 
-По мере реализации к этому файлу добавляются новые модели. Черновые или незавершённые зависимые модели импортировать не следует.
+При появлении новых моделей экспорт обновляется вместе с их фактической
+реализацией. Черновые или отсутствующие зависимые модели импортировать не
+следует. Наличие имени в этом снимке не доказывает, что соответствующая миграция
+применена к конкретной базе данных.
 
 В `alembic/env.py` пакет моделей импортируется до использования метаданных:
 
@@ -403,13 +521,18 @@ git add app/models alembic/versions
 git commit -m "Add ProductType reference model and migration"
 ```
 
-На текущем этапе допустима отдельная миграция для каждого справочника. Это упрощает проверку, откат и поиск ошибок.
+Для новой группы моделей допустима отдельная миграция для каждого справочника.
+Это общий рекомендуемый приём, который упрощает проверку, откат и поиск ошибок;
+он не описывает текущий статус существующих миграций.
 
 ## 7. Итоговые правила
 
 - файлы предметных областей именуются во множественном числе;
 - ORM-классы именуются в единственном числе;
 - справочники PNC наследуют общие поля от `PNCBaseReference`;
+- `OKVED` является отдельным внешним иерархическим классификатором и не наследует `PNCBaseReference`;
+- `EnterpriseOKVED` и `EnterpriseIndustry` описывают соответственно регистрационный и рыночный контекст профиля;
+- основной `OKVED` не преобразуется в основную `Industry` автоматически;
 - сначала создаются независимые справочники без `relationship()`;
 - связи добавляются после появления зависимых сущностей;
 - незавершённые модели не регистрируются в `app.models`;
