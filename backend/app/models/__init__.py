@@ -1,9 +1,10 @@
-# enterprise.py
+# enterprises.py
 from app.models.enterprises import (
     CertificateType,
     CompanySize,
     EnterpriseCertificate,
     EnterpriseIndustry,
+    EnterpriseOKVED,
     EnterpriseProfile,
     Industry,
     QualityCapability,
@@ -16,6 +17,7 @@ from app.models.materials import (
     MaterialGroup,
     MaterialItem,
 )
+from app.models.okved import OKVED
 from app.models.orders import OrderType, ProductionOrder
 from app.models.pnc_reference import TechnologyType
 from app.models.productions import (
@@ -60,4 +62,6 @@ __all__ = [
     "Warehouse",
     "LiftingEquipment",
     "Transport",
+    "OKVED",
+    "EnterpriseOKVED",
 ]

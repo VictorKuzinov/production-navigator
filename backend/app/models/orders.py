@@ -27,8 +27,7 @@ class ProductionOrder(Base):
     __tablename__ = "pnc_production_order"
     __table_args__ = (
         UniqueConstraint(
-            "profile_id", "order_number",
-            name="uq_pnc_order_profile_number"
+            "profile_id", "order_number", name="uq_pnc_order_profile_number"
         ),
         Index(
             "ix_pnc_order_profile_deadline",
@@ -43,6 +42,10 @@ class ProductionOrder(Base):
         Index(
             "ix_pnc_order_industry_deadline",
             "industry_code",
+            "deadline"
+        ),
+        Index(
+            "ix_pnc_order_deadline",
             "deadline"
         ),
         Index(

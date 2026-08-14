@@ -13,6 +13,7 @@ from app.models.base_reference import PNCBaseReference
 if TYPE_CHECKING:
     from app.models.enterprises import EnterpriseProfile
     from app.models.materials import MaterialItem
+    from app.models.orders import ProductionOrder
 
 class ProductType(Base, PNCBaseReference):
     __tablename__ = "pnc_product_type"
@@ -85,6 +86,6 @@ class Product(Base):
     material_item: Mapped["MaterialItem"] = relationship(
         back_populates="products"
     )
-    # orders: Mapped[list["ProductionOrder"]] = relationship(
-    #     back_populates="product"
-    # )
+    orders: Mapped[list["ProductionOrder"]] = relationship(
+        back_populates="product"
+    )
