@@ -17,3 +17,7 @@ class CompanySizeNotFoundError(Exception):
 class RegionNotFoundError(Exception):
     """Region not found."""
     pass
+
+class ProductionFacilityNotFoundError(Exception):
+    """Production facility not found."""
+    pass

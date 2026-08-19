@@ -1,9 +1,14 @@
 from app.core.config import settings
+from app.core.exception_handlers import (
+    enterprise_profile_not_found_handler,
+    production_facility_not_found_handler,
+)
 from app.core.exceptions import (
     CompanySizeNotFoundError,
     DuplicateInnError,
     DuplicateOgrnError,
     EnterpriseProfileNotFoundError,
+    ProductionFacilityNotFoundError,
     RegionNotFoundError,
 )
 
@@ -14,4 +19,7 @@ __all__ = [
     'DuplicateInnError',
     'DuplicateOgrnError',
     'RegionNotFoundError',
+    "ProductionFacilityNotFoundError",
+    "enterprise_profile_not_found_handler",
+    "production_facility_not_found_handler",
 ]

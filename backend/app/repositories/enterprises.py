@@ -27,7 +27,10 @@ class EnterpriseProfileRepository:
         profile_inn: str,
     )-> EnterpriseProfile | None:
 
-        statement = select(EnterpriseProfile).where(EnterpriseProfile.inn == profile_inn)
+        statement = (
+            select(EnterpriseProfile).
+            where(EnterpriseProfile.inn == profile_inn)
+        )
         result = await self.session.execute(statement)
 
         return result.scalar_one_or_none()
@@ -37,7 +40,10 @@ class EnterpriseProfileRepository:
         profile_ogrn: str,
     ) -> EnterpriseProfile | None:
 
-        statement = select(EnterpriseProfile).where(EnterpriseProfile.ogrn == profile_ogrn)
+        statement = (select(
+            EnterpriseProfile).
+            where(EnterpriseProfile.ogrn == profile_ogrn)
+        )
         result = await self.session.execute(statement)
 
         return result.scalar_one_or_none()
@@ -57,7 +63,7 @@ class EnterpriseProfileRepository:
 
         result = await self.session.execute(statement)
 
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def create(
             self,

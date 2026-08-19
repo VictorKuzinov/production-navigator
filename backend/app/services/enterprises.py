@@ -37,6 +37,7 @@ class EnterpriseProfileService:
             offset: int = 0,
             limit: int = 100,
     ) -> list[EnterpriseProfile]:
+
         return await self.repository.list_profiles(
             offset=offset,
             limit=limit,
