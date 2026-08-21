@@ -1,6 +1,7 @@
 from app.core.config import settings
 from app.core.exception_handlers import (
     enterprise_profile_not_found_handler,
+    equipment_not_found_handler,
     production_facility_not_found_handler,
 )
 from app.core.exceptions import (
@@ -8,6 +9,8 @@ from app.core.exceptions import (
     DuplicateInnError,
     DuplicateOgrnError,
     EnterpriseProfileNotFoundError,
+    EquipmentNotFoundError,
+    EquipmentTypeNotFoundError,
     ProductionFacilityNotFoundError,
     RegionNotFoundError,
 )
@@ -22,4 +25,7 @@ __all__ = [
     "ProductionFacilityNotFoundError",
     "enterprise_profile_not_found_handler",
     "production_facility_not_found_handler",
+    "EquipmentNotFoundError",
+    "EquipmentTypeNotFoundError",
+    "equipment_not_found_handler",
 ]

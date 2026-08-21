@@ -21,3 +21,11 @@ class RegionNotFoundError(Exception):
 class ProductionFacilityNotFoundError(Exception):
     """Production facility not found."""
     pass
+
+class EquipmentNotFoundError(Exception):
+    """Equipment not found."""
+    pass
+
+class EquipmentTypeNotFoundError(Exception):
+    """Equipment type not found."""
+    pass

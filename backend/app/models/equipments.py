@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 # Сторонние пакеты
-from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer
+from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 # Локальные
@@ -44,6 +44,7 @@ class Equipment(Base):
     equipment_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_equipment_type.code"), nullable=False
     )
+    model_name: Mapped[str | None] = mapped_column(String(255))
     cnc: Mapped[bool] = mapped_column(
         Boolean,
         default=False,

@@ -1,7 +1,9 @@
-from app.repositories.enterprises import EnterpriseProfileRepository
-from app.repositories.production_facilities import ProductionFacilityRepository
+from app.services.enterprises import EnterpriseProfileService
+from app.services.equipments import EquipmentService
+from app.services.production_facilities import ProductionFacilityService
 
 __all__= (
-    "EnterpriseProfileRepository",
-    "ProductionFacilityRepository",
+    "EnterpriseProfileService",
+    "EquipmentService",
+    "ProductionFacilityService",
 )

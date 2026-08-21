@@ -3,6 +3,11 @@ from app.schemas.enterprises import (
     EnterpriseProfileRead,
     EnterpriseProfileUpdate,
 )
+from app.schemas.equipments import (
+    EquipmentCreate,
+    EquipmentRead,
+    EquipmentUpdate,
+)
 from app.schemas.production_facilities import (
     ProductionFacilityCreate,
     ProductionFacilityRead,
@@ -16,4 +21,7 @@ __all__ = [
     "ProductionFacilityCreate",
     "ProductionFacilityRead",
     "ProductionFacilityUpdate",
+    "EquipmentCreate",
+    "EquipmentRead",
+    "EquipmentUpdate",
 ]

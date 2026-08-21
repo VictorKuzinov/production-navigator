@@ -417,6 +417,7 @@ class Equipment(Base):
     equipment_type_code: Mapped[str] = mapped_column(
         ForeignKey("pnc_equipment_type.code"), nullable=False
     )
+    model_name: Mapped[str | None] = mapped_column(String(255))
     cnc: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     axes: Mapped[int | None] = mapped_column(Integer)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)

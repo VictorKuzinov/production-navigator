@@ -4,9 +4,14 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.dependencies import get_session
-from app.repositories import ProductionFacilityRepository, ReferenceRepository
+from app.repositories import (
+    EquipmentRepository,
+    ProductionFacilityRepository,
+    ReferenceRepository,
+)
 from app.repositories.enterprises import EnterpriseProfileRepository
 from app.services.enterprises import EnterpriseProfileService
+from app.services.equipments import EquipmentService
 from app.services.production_facilities import ProductionFacilityService
 
 SessionDep = Annotated[
@@ -35,4 +40,19 @@ def get_facility_service(
     return ProductionFacilityService(
         repository,
         enterprise_repository,
+    )
+
+def get_equipment_service(
+    session: SessionDep,
+) -> EquipmentService:
+    repository = EquipmentRepository(session)
+    enterprise_repository = EnterpriseProfileRepository(session)
+    facility_repository = ProductionFacilityRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return EquipmentService(
+        repository,
+        enterprise_repository,
+        facility_repository,
+        reference_repository,
     )

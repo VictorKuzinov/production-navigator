@@ -2,7 +2,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import CompanySize, Industry, Region
+from app.models import CompanySize, EquipmentType, Industry, Region
 from app.models.base_reference import PNCBaseReference
 
 
@@ -37,4 +37,10 @@ class ReferenceRepository:
             code: str,
     ) -> Industry | None:
         return await self._get_by_code(Industry, code)
+
+    async def get_equipment_type_by_code(
+        self,
+        code: str,
+    ) -> EquipmentType | None:
+        return await self._get_by_code(EquipmentType, code)
 

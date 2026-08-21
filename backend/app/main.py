@@ -4,10 +4,14 @@ from app.api.router import api_router
 from app.core import settings
 from app.core.exception_handlers import (
     enterprise_profile_not_found_handler,
+    equipment_not_found_handler,
+    equipment_type_not_found_handler,
     production_facility_not_found_handler,
 )
 from app.core.exceptions import (
     EnterpriseProfileNotFoundError,
+    EquipmentNotFoundError,
+    EquipmentTypeNotFoundError,
     ProductionFacilityNotFoundError,
 )
 
@@ -24,6 +28,16 @@ app.add_exception_handler(
 app.add_exception_handler(
     ProductionFacilityNotFoundError,
     production_facility_not_found_handler,
+)
+
+app.add_exception_handler(
+    EquipmentNotFoundError,
+    equipment_not_found_handler,
+)
+
+app.add_exception_handler(
+    EquipmentTypeNotFoundError,
+    equipment_type_not_found_handler,
 )
 
 app.include_router(api_router)
