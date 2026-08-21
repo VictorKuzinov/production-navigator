@@ -8,11 +8,13 @@ from app.repositories import (
     EquipmentRepository,
     ProductionFacilityRepository,
     ReferenceRepository,
+    WarehouseRepository,
 )
 from app.repositories.enterprises import EnterpriseProfileRepository
 from app.services.enterprises import EnterpriseProfileService
 from app.services.equipments import EquipmentService
 from app.services.production_facilities import ProductionFacilityService
+from app.services.warehouses import WarehouseService
 
 SessionDep = Annotated[
     AsyncSession,
@@ -54,5 +56,19 @@ def get_equipment_service(
         repository,
         enterprise_repository,
         facility_repository,
+        reference_repository,
+    )
+
+
+def get_warehouse_service(
+    session: SessionDep,
+) -> WarehouseService:
+    repository = WarehouseRepository(session)
+    enterprise_repository = EnterpriseProfileRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return WarehouseService(
+        repository,
+        enterprise_repository,
         reference_repository,
     )

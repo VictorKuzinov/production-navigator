@@ -5,7 +5,7 @@ from app.core.exceptions import (
 from app.models import ProductionFacility
 from app.repositories import EnterpriseProfileRepository
 from app.repositories.production_facilities import ProductionFacilityRepository
-from app.schemas import ProductionFacilityCreate
+from app.schemas import ProductionFacilityCreate, ProductionFacilityUpdate
 
 
 class ProductionFacilityService:
@@ -63,6 +63,22 @@ class ProductionFacilityService:
             data=data,
         )
 
+    async def update(
+        self,
+        facility_id: int,
+        data: ProductionFacilityUpdate,
+    ) -> ProductionFacility | None:
+        facility = await self.repository.get_by_id(facility_id)
+
+        if facility is None:
+            raise ProductionFacilityNotFoundError(
+                f"Production facility {facility_id} not found."
+            )
+
+        return await self.repository.update(
+            facility_id,
+            data,
+        )
 
     async def delete(
             self,

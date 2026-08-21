@@ -41,3 +41,8 @@ build/
 # Temporary files
 tmp/
 temp/
+*.egg-info/
+
+# Local development seed/utilities
+/backend/app/seeds/check_okved.py
+/backend/app/seeds/enterprises.py

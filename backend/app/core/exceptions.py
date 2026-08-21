@@ -29,3 +29,11 @@ class EquipmentNotFoundError(Exception):
 class EquipmentTypeNotFoundError(Exception):
     """Equipment type not found."""
     pass
+
+class WarehouseNotFoundError(Exception):
+    """Warehouse not found."""
+    pass
+
+class WarehouseTypeNotFoundError(Exception):
+    """Warehouse type not found."""
+    pass

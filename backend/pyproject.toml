@@ -25,6 +25,18 @@ dependencies = [
     "httpx==0.28.1",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-asyncio>=1.0",
+    "aiosqlite>=0.20",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["tests*", "alembic*", "output*"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
@@ -44,6 +56,9 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra --strict-markers --import-mode=importlib"
 
 [tool.mypy]
 python_version = "3.12"

@@ -6,6 +6,8 @@ from app.core.exceptions import (
     EquipmentNotFoundError,
     EquipmentTypeNotFoundError,
     ProductionFacilityNotFoundError,
+    WarehouseNotFoundError,
+    WarehouseTypeNotFoundError,
 )
 
 
@@ -40,6 +42,26 @@ async def equipment_not_found_handler(
 async def equipment_type_not_found_handler(
     request: Request,
     exc: EquipmentTypeNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def warehouse_not_found_handler(
+    request: Request,
+    exc: WarehouseNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def warehouse_type_not_found_handler(
+    request: Request,
+    exc: WarehouseTypeNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
