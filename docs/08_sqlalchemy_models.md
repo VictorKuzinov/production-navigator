@@ -385,9 +385,7 @@ class Transport(Base):
     )
     payload_tons: Mapped[float] = mapped_column(Float, nullable=False)
     body_volume_cube: Mapped[float | None] = mapped_column(Float)
-    has_refrigeration: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    has_refrigeration: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
     profile: Mapped["EnterpriseProfile"] = relationship(back_populates="transports")
@@ -685,6 +683,25 @@ class ProductionOrder(Base):
   с `LiftingEquipment.profile_id`. Внешний ключ дополнительно гарантирует
   ссылочную целостность на уровне БД. Эти проверки не выражаются DB `CHECK`
   constraint.
+- `Transport` в текущем MVP описывает автомобильное транспортное средство или
+  однородную группу автомобильных транспортных средств. `payload_tons` и
+  `body_volume_cube` относятся к одной единице, `quantity` — к числу однотипных
+  единиц. `payload_tons > 0`, nullable `body_volume_cube > 0` при указанном
+  значении и `quantity >= 1` проверяются на application/API layer; DB `CHECK`
+  constraints для этих диапазонов не вводятся.
+- `Transport.has_refrigeration` является nullable-трёхсостоянием: `True` —
+  наличие подтверждено, `False` — отсутствие подтверждено, `NULL` — значение
+  неизвестно или не предоставлено. Default — `None`; type-specific
+  restrictions для этого поля отсутствуют.
+- Все сочетания `TransportType`, `TransportScope` и `TransportOwnershipType`
+  допустимы. `Transport` не имеет `UNIQUE` constraint, а одинаковые строки не
+  объединяются автоматически.
+- `RAILWAY_SPUR` исключён из целевого `TransportType`: железнодорожный транспорт
+  и инфраструктура не входят в границу `Transport` текущего MVP. Текущие
+  рабочие seed/reference data изменяются только на этапе реализации.
+- Переход от текущего non-nullable `Transport.has_refrigeration` с ORM default
+  `False` к nullable полю без default требует отдельной Alembic migration при
+  реализации. Этот целевой документ не заменяет создание и проверку migration.
 - Все таблицы и вручную именованные индексы/ограничения используют префикс `pnc_`; опечаток вида `ix_pmc_...` и внешних ключей на `pbc_...` в документе нет.
 - `Warehouse.__table_args__` — одноэлементный кортеж. Запятая после `Index(...)` обязательна; приведённый вариант синтаксически корректен.
 - `EnterpriseIndustry` содержит только PostgreSQL-вариант частичного уникального индекса `ix_pnc_enterprise_industry_primary` с условием `is_primary IS TRUE`. Он гарантирует не более одной основной отрасли на профиль. `sqlite_where` намеренно отсутствует.

@@ -2,12 +2,12 @@
 
 ## Назначение и статус
 
-Документ фиксирует фактически внедрённый стандарт автоматизированного тестирования backend Production Navigator. Основной test runner — `pytest`. Текущая suite находится в `backend/tests/` и проверяет завершённые вертикальные срезы `EnterpriseProfile`, `ProductionFacility`, `Equipment` и `Warehouse`.
+Документ фиксирует фактически внедрённый стандарт автоматизированного тестирования backend Production Navigator. Основной test runner — `pytest`. Текущая suite находится в `backend/tests/` и проверяет завершённые вертикальные срезы `EnterpriseProfile`, `ProductionFacility`, `Equipment`, `Warehouse` и `LiftingEquipment`. `Transport` ещё не реализован и Transport-specific tests в suite отсутствуют.
 
 Последний подтверждённый полный запуск завершён успешно:
 
 ```text
-42 passed
+89 passed
 ```
 
 Этот результат является текущим regression baseline. Документ не задаёт будущую CI-архитектуру, требования к coverage или альтернативную test database.
@@ -108,10 +108,16 @@ AsyncClient(transport=transport, base_url="http://testserver")
 
 Regression test добавляется для каждого подтверждённого дефекта приложения или нарушенного backend-контракта и проверяет поведение, а не наличие метода или строки кода.
 
-Текущая suite содержит две зафиксированные регрессии:
+Текущая suite содержит три зафиксированные группы регрессий:
 
 1. **ProductionFacility PATCH.** Ранее PATCH endpoint существовал, но `ProductionFacilityService.update` был удалён. `test_patch_production_facility_persists_changes` выполняет create → GET → PATCH → GET и подтверждает сохранение нового значения через полный API flow.
 2. **Warehouse PATCH nullability.** Runtime ранее принимал explicit `null` для ORM non-nullable полей. Schema и API tests подтверждают отказ с validation/HTTP 422 для `warehouse_type_code`, `total_capacity_cube` и `temperature_control`, а также разрешённую очистку nullable `max_load_sqm`.
+3. **LiftingEquipment location и ownership.** Schema, service, repository и API
+   tests защищают все четыре комбинации `facility_id`/`warehouse_id` (только
+   площадка, только склад, обе ссылки и обе ссылки `NULL`), проверяют
+   принадлежность заданных объектов тому же profile, фактическую замену ссылок
+   A→B, различие omitted и explicit `null` в PATCH, а также изоляцию
+   profile-scoped listing.
 
 Regression expectation не подгоняется под дефект. Если тест выявляет новый production bug, production-код исправляется отдельным remediation cycle, а тест сохраняет требуемый контракт.
 
@@ -119,13 +125,15 @@ Regression expectation не подгоняется под дефект. Если
 
 | Уровень | Тестов |
 |---|---:|
-| Schemas | 14 |
-| Services | 16 |
-| Repositories | 4 |
-| API/integration | 8 |
-| **Всего** | **42** |
+| Schemas | 26 |
+| Services | 37 |
+| Repositories | 10 |
+| API/integration | 16 |
+| **Всего** | **89** |
 
-Подсчёт соответствует текущим test functions и подтверждённому результату последнего полного запуска: `42 passed`.
+Подсчёт учитывает собранные pytest cases, включая параметризованные сценарии,
+и соответствует подтверждённому результату последнего полного запуска:
+`89 passed`.
 
 ## Стандартные команды
 
@@ -173,5 +181,19 @@ ruff check app tests
 2. Ruff завершён без ошибок для затронутого кода и тестов.
 3. Полный `pytest` завершён успешно.
 4. Выполнен короткий Swagger smoke для основных happy-path операций и визуальной проверки опубликованного HTTP-контракта.
+5. `docs/10_testing.md` синхронизирован с фактически завершённым slice и
+   воспроизводимым полным test run.
 
 Swagger smoke выполняется после автоматизированных проверок. Он не заменяет pytest и не является regression suite: ручная проверка не обеспечивает воспроизводимость, изоляцию данных и защиту ранее обнаруженных дефектов.
+
+После создания или изменения automated tests для завершённого vertical slice
+этот документ обновляется до того, как slice считается завершённым. Минимально
+синхронизируются:
+
+- перечень покрытых slices;
+- фактически воспроизводимый full-pytest baseline;
+- новые существенные regression scenarios;
+- изменения test infrastructure, если они были.
+
+Исторический test baseline нельзя оставлять в `docs/10_testing.md` после
+завершения нового slice.
