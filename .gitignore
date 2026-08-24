@@ -42,6 +42,7 @@ build/
 tmp/
 temp/
 *.egg-info/
+/backend/output/
 
 # Local development seed/utilities
 /backend/app/seeds/check_okved.py
