@@ -3,17 +3,21 @@ from fastapi import FastAPI
 from app.api.router import api_router
 from app.core import settings
 from app.core.exception_handlers import (
+    crane_type_not_found_handler,
     enterprise_profile_not_found_handler,
     equipment_not_found_handler,
     equipment_type_not_found_handler,
+    lifting_equipment_not_found_handler,
     production_facility_not_found_handler,
     warehouse_not_found_handler,
     warehouse_type_not_found_handler,
 )
 from app.core.exceptions import (
+    CraneTypeNotFoundError,
     EnterpriseProfileNotFoundError,
     EquipmentNotFoundError,
     EquipmentTypeNotFoundError,
+    LiftingEquipmentNotFoundError,
     ProductionFacilityNotFoundError,
     WarehouseNotFoundError,
     WarehouseTypeNotFoundError,
@@ -52,6 +56,16 @@ app.add_exception_handler(
 app.add_exception_handler(
     WarehouseTypeNotFoundError,
     warehouse_type_not_found_handler,
+)
+
+app.add_exception_handler(
+    LiftingEquipmentNotFoundError,
+    lifting_equipment_not_found_handler,
+)
+
+app.add_exception_handler(
+    CraneTypeNotFoundError,
+    crane_type_not_found_handler,
 )
 
 app.include_router(api_router)

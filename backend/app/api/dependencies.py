@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.dependencies import get_session
 from app.repositories import (
     EquipmentRepository,
+    LiftingEquipmentRepository,
     ProductionFacilityRepository,
     ReferenceRepository,
     WarehouseRepository,
@@ -13,6 +14,7 @@ from app.repositories import (
 from app.repositories.enterprises import EnterpriseProfileRepository
 from app.services.enterprises import EnterpriseProfileService
 from app.services.equipments import EquipmentService
+from app.services.lifting_equipments import LiftingEquipmentService
 from app.services.production_facilities import ProductionFacilityService
 from app.services.warehouses import WarehouseService
 
@@ -70,5 +72,23 @@ def get_warehouse_service(
     return WarehouseService(
         repository,
         enterprise_repository,
+        reference_repository,
+    )
+
+
+def get_lifting_equipment_service(
+    session: SessionDep,
+) -> LiftingEquipmentService:
+    repository = LiftingEquipmentRepository(session)
+    enterprise_repository = EnterpriseProfileRepository(session)
+    facility_repository = ProductionFacilityRepository(session)
+    warehouse_repository = WarehouseRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return LiftingEquipmentService(
+        repository,
+        enterprise_repository,
+        facility_repository,
+        warehouse_repository,
         reference_repository,
     )

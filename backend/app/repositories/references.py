@@ -2,7 +2,14 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import CompanySize, EquipmentType, Industry, Region, WarehouseType
+from app.models import (
+    CompanySize,
+    CraneType,
+    EquipmentType,
+    Industry,
+    Region,
+    WarehouseType,
+)
 from app.models.base_reference import PNCBaseReference
 
 
@@ -50,4 +57,8 @@ class ReferenceRepository:
     ) -> WarehouseType | None:
         return await self._get_by_code(WarehouseType, code)
 
-
+    async def get_crane_type_by_code(
+        self,
+        code: str,
+    ) -> CraneType | None:
+        return await self._get_by_code(CraneType, code)

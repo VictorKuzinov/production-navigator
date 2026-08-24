@@ -16,10 +16,12 @@ from app.db.dependencies import get_session
 from app.main import app
 from app.models import (
     CompanySize,
+    CraneType,
     EnterpriseProfile,
     EquipmentType,
     ProductionFacility,
     Region,
+    Warehouse,
     WarehouseType,
 )
 
@@ -94,6 +96,22 @@ async def reference_rows(db_session: AsyncSession) -> dict[str, str]:
             ref_code="22-03-01-02",
             description="Test fixture for a documented PNC value.",
         ),
+        CraneType(
+            code="OVERHEAD_CRANE",
+            name_ru="Мостовой кран",
+            ics_section="53.020.20",
+            ref_system="eCl@ss",
+            ref_code="22-51-01-01",
+            description="Test fixture for a documented PNC value.",
+        ),
+        CraneType(
+            code="GANTRY_CRANE",
+            name_ru="Козловой кран",
+            ics_section="53.020.20",
+            ref_system="eCl@ss",
+            ref_code="22-51-01-02",
+            description="Test fixture for a documented PNC value.",
+        ),
         WarehouseType(
             code="UNIVERSAL",
             name_ru="Универсальный склад",
@@ -119,6 +137,8 @@ async def reference_rows(db_session: AsyncSession) -> dict[str, str]:
         "region": "PNC_REG_66",
         "equipment_type": "TURNING",
         "other_equipment_type": "MILLING",
+        "crane_type": "OVERHEAD_CRANE",
+        "other_crane_type": "GANTRY_CRANE",
         "warehouse_type": "UNIVERSAL",
         "other_warehouse_type": "FINISHED_GOODS",
     }
@@ -164,6 +184,25 @@ async def facility_row(
     await db_session.commit()
     await db_session.refresh(facility)
     return facility
+
+
+@pytest.fixture
+async def warehouse_row(
+    db_session: AsyncSession,
+    enterprise_row: EnterpriseProfile,
+    reference_rows: dict[str, str],
+) -> Warehouse:
+    warehouse = Warehouse(
+        profile_id=enterprise_row.id,
+        warehouse_type_code=reference_rows["warehouse_type"],
+        total_capacity_cube=120.0,
+        max_load_sqm=15.0,
+        temperature_control=False,
+    )
+    db_session.add(warehouse)
+    await db_session.commit()
+    await db_session.refresh(warehouse)
+    return warehouse
 
 
 @pytest.fixture

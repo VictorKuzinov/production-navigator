@@ -8,6 +8,11 @@ from app.schemas.equipments import (
     EquipmentRead,
     EquipmentUpdate,
 )
+from app.schemas.lifting_equipments import (
+    LiftingEquipmentCreate,
+    LiftingEquipmentRead,
+    LiftingEquipmentUpdate,
+)
 from app.schemas.production_facilities import (
     ProductionFacilityCreate,
     ProductionFacilityRead,
@@ -29,6 +34,9 @@ __all__ = [
     "EquipmentCreate",
     "EquipmentRead",
     "EquipmentUpdate",
+    "LiftingEquipmentCreate",
+    "LiftingEquipmentRead",
+    "LiftingEquipmentUpdate",
     "WarehouseCreate",
     "WarehouseRead",
     "WarehouseUpdate",

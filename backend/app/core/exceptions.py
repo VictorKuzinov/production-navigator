@@ -37,3 +37,11 @@ class WarehouseNotFoundError(Exception):
 class WarehouseTypeNotFoundError(Exception):
     """Warehouse type not found."""
     pass
+
+class LiftingEquipmentNotFoundError(Exception):
+    """Lifting equipment not found."""
+    pass
+
+class CraneTypeNotFoundError(Exception):
+    """Crane type not found."""
+    pass
