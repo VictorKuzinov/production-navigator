@@ -336,9 +336,11 @@ class LiftingEquipment(Base):
         ForeignKey("pnc_crane_type.code"), nullable=False
     )
     facility_id: Mapped[int | None] = mapped_column(
-        ForeignKey("pnc_production_facility.id")
+        ForeignKey("pnc_production_facility.id"), nullable=True
     )
-    warehouse_id: Mapped[int | None] = mapped_column(ForeignKey("pnc_warehouse.id"))
+    warehouse_id: Mapped[int | None] = mapped_column(
+        ForeignKey("pnc_warehouse.id"), nullable=True
+    )
     load_capacity_tons: Mapped[float] = mapped_column(Float, nullable=False)
     max_lift_height: Mapped[float | None] = mapped_column(Float)
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
@@ -673,6 +675,16 @@ class ProductionOrder(Base):
 
 ## Примечания к ограничениям, индексам и связям
 
+- `LiftingEquipment.facility_id` и `LiftingEquipment.warehouse_id` — независимые
+  nullable-ссылки. Допустимы все четыре состояния: указана только площадка,
+  указан только склад, указаны оба объекта или обе ссылки равны `NULL`.
+  DB-схема не содержит XOR, `CHECK` «указана хотя бы одна ссылка» или запрета
+  одновременной привязки и не должна вводить такие ограничения.
+- Если `facility_id` или `warehouse_id` указан, application/service layer
+  проверяет существование соответствующего объекта и совпадение его `profile_id`
+  с `LiftingEquipment.profile_id`. Внешний ключ дополнительно гарантирует
+  ссылочную целостность на уровне БД. Эти проверки не выражаются DB `CHECK`
+  constraint.
 - Все таблицы и вручную именованные индексы/ограничения используют префикс `pnc_`; опечаток вида `ix_pmc_...` и внешних ключей на `pbc_...` в документе нет.
 - `Warehouse.__table_args__` — одноэлементный кортеж. Запятая после `Index(...)` обязательна; приведённый вариант синтаксически корректен.
 - `EnterpriseIndustry` содержит только PostgreSQL-вариант частичного уникального индекса `ix_pnc_enterprise_industry_primary` с условием `is_primary IS TRUE`. Он гарантирует не более одной основной отрасли на профиль. `sqlite_where` намеренно отсутствует.
