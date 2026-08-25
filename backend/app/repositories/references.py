@@ -8,6 +8,9 @@ from app.models import (
     EquipmentType,
     Industry,
     Region,
+    TransportOwnershipType,
+    TransportScope,
+    TransportType,
     WarehouseType,
 )
 from app.models.base_reference import PNCBaseReference
@@ -62,3 +65,21 @@ class ReferenceRepository:
         code: str,
     ) -> CraneType | None:
         return await self._get_by_code(CraneType, code)
+
+    async def get_transport_type_by_code(
+        self,
+        code: str,
+    ) -> TransportType | None:
+        return await self._get_by_code(TransportType, code)
+
+    async def get_transport_scope_by_code(
+        self,
+        code: str,
+    ) -> TransportScope | None:
+        return await self._get_by_code(TransportScope, code)
+
+    async def get_transport_ownership_type_by_code(
+        self,
+        code: str,
+    ) -> TransportOwnershipType | None:
+        return await self._get_by_code(TransportOwnershipType, code)

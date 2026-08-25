@@ -45,3 +45,19 @@ class LiftingEquipmentNotFoundError(Exception):
 class CraneTypeNotFoundError(Exception):
     """Crane type not found."""
     pass
+
+class TransportNotFoundError(Exception):
+    """Transport not found."""
+    pass
+
+class TransportTypeNotFoundError(Exception):
+    """Transport type not found."""
+    pass
+
+class TransportScopeNotFoundError(Exception):
+    """Transport scope not found."""
+    pass
+
+class TransportOwnershipTypeNotFoundError(Exception):
+    """Transport ownership type not found."""
+    pass

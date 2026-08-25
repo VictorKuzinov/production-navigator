@@ -18,6 +18,11 @@ from app.schemas.production_facilities import (
     ProductionFacilityRead,
     ProductionFacilityUpdate,
 )
+from app.schemas.transports import (
+    TransportCreate,
+    TransportRead,
+    TransportUpdate,
+)
 from app.schemas.warehouses import (
     WarehouseCreate,
     WarehouseRead,
@@ -37,6 +42,9 @@ __all__ = [
     "LiftingEquipmentCreate",
     "LiftingEquipmentRead",
     "LiftingEquipmentUpdate",
+    "TransportCreate",
+    "TransportRead",
+    "TransportUpdate",
     "WarehouseCreate",
     "WarehouseRead",
     "WarehouseUpdate",

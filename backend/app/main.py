@@ -9,6 +9,10 @@ from app.core.exception_handlers import (
     equipment_type_not_found_handler,
     lifting_equipment_not_found_handler,
     production_facility_not_found_handler,
+    transport_not_found_handler,
+    transport_ownership_type_not_found_handler,
+    transport_scope_not_found_handler,
+    transport_type_not_found_handler,
     warehouse_not_found_handler,
     warehouse_type_not_found_handler,
 )
@@ -19,6 +23,10 @@ from app.core.exceptions import (
     EquipmentTypeNotFoundError,
     LiftingEquipmentNotFoundError,
     ProductionFacilityNotFoundError,
+    TransportNotFoundError,
+    TransportOwnershipTypeNotFoundError,
+    TransportScopeNotFoundError,
+    TransportTypeNotFoundError,
     WarehouseNotFoundError,
     WarehouseTypeNotFoundError,
 )
@@ -68,10 +76,29 @@ app.add_exception_handler(
     crane_type_not_found_handler,
 )
 
+app.add_exception_handler(
+    TransportNotFoundError,
+    transport_not_found_handler,
+)
+
+app.add_exception_handler(
+    TransportTypeNotFoundError,
+    transport_type_not_found_handler,
+)
+
+app.add_exception_handler(
+    TransportScopeNotFoundError,
+    transport_scope_not_found_handler,
+)
+
+app.add_exception_handler(
+    TransportOwnershipTypeNotFoundError,
+    transport_ownership_type_not_found_handler,
+)
+
 app.include_router(api_router)
 
 
 @app.get("/health", tags=["Health"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
-

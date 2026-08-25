@@ -699,9 +699,11 @@ class ProductionOrder(Base):
 - `RAILWAY_SPUR` исключён из целевого `TransportType`: железнодорожный транспорт
   и инфраструктура не входят в границу `Transport` текущего MVP. Текущие
   рабочие seed/reference data изменяются только на этапе реализации.
-- Переход от текущего non-nullable `Transport.has_refrigeration` с ORM default
-  `False` к nullable полю без default требует отдельной Alembic migration при
-  реализации. Этот целевой документ не заменяет создание и проверку migration.
+- Nullable tri-state `Transport.has_refrigeration` уже реализован в рабочей ORM
+  как `Mapped[bool | None]` с `nullable=True`. Alembic migration
+  `27a920326238_make_transport_refrigeration_nullable.py`, переводящая колонку
+  из `NOT NULL` в nullable, уже создана; её применение к конкретной базе данных
+  проверяется отдельно.
 - Все таблицы и вручную именованные индексы/ограничения используют префикс `pnc_`; опечаток вида `ix_pmc_...` и внешних ключей на `pbc_...` в документе нет.
 - `Warehouse.__table_args__` — одноэлементный кортеж. Запятая после `Index(...)` обязательна; приведённый вариант синтаксически корректен.
 - `EnterpriseIndustry` содержит только PostgreSQL-вариант частичного уникального индекса `ix_pnc_enterprise_industry_primary` с условием `is_primary IS TRUE`. Он гарантирует не более одной основной отрасли на профиль. `sqlite_where` намеренно отсутствует.

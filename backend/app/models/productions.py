@@ -273,9 +273,9 @@ class Transport(Base):
         Float,
         nullable=True,
     )
-    has_refrigeration: Mapped[bool] = mapped_column(
+    has_refrigeration: Mapped[bool | None] = mapped_column(
         Boolean,
-        nullable=True
+        nullable=True,
     )
     quantity: Mapped[int] = mapped_column(
         Integer,

@@ -9,6 +9,7 @@ from app.repositories import (
     LiftingEquipmentRepository,
     ProductionFacilityRepository,
     ReferenceRepository,
+    TransportRepository,
     WarehouseRepository,
 )
 from app.repositories.enterprises import EnterpriseProfileRepository
@@ -16,6 +17,7 @@ from app.services.enterprises import EnterpriseProfileService
 from app.services.equipments import EquipmentService
 from app.services.lifting_equipments import LiftingEquipmentService
 from app.services.production_facilities import ProductionFacilityService
+from app.services.transports import TransportService
 from app.services.warehouses import WarehouseService
 
 SessionDep = Annotated[
@@ -90,5 +92,19 @@ def get_lifting_equipment_service(
         enterprise_repository,
         facility_repository,
         warehouse_repository,
+        reference_repository,
+    )
+
+
+def get_transport_service(
+    session: SessionDep,
+) -> TransportService:
+    repository = TransportRepository(session)
+    enterprise_repository = EnterpriseProfileRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return TransportService(
+        repository,
+        enterprise_repository,
         reference_repository,
     )

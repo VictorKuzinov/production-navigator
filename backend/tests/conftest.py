@@ -21,6 +21,9 @@ from app.models import (
     EquipmentType,
     ProductionFacility,
     Region,
+    TransportOwnershipType,
+    TransportScope,
+    TransportType,
     Warehouse,
     WarehouseType,
 )
@@ -128,6 +131,54 @@ async def reference_rows(db_session: AsyncSession) -> dict[str, str]:
             ref_code="41-01-01-02",
             description="Test fixture for a documented PNC value.",
         ),
+        TransportType(
+            code="LIGHT_COMMERCIAL",
+            name_ru="Малотоннажный коммерческий транспорт",
+            ics_section="43.080.10",
+            ref_system="eCl@ss",
+            ref_code="41-02-01-01",
+            description="Test fixture for a documented PNC value.",
+        ),
+        TransportType(
+            code="HEAVY_TRUCK",
+            name_ru="Крупнотоннажный транспорт (Фуры)",
+            ics_section="43.080.10",
+            ref_system="eCl@ss",
+            ref_code="41-02-01-02",
+            description="Test fixture for a documented PNC value.",
+        ),
+        TransportScope(
+            code="REGIONAL",
+            name_ru="По региону",
+            ics_section="03.100.10",
+            ref_system="eCl@ss",
+            ref_code="41-02-01-00",
+            description="Test fixture for a documented PNC value.",
+        ),
+        TransportScope(
+            code="NATIONAL",
+            name_ru="По России (Национальный)",
+            ics_section="03.100.10",
+            ref_system="eCl@ss",
+            ref_code="41-02-02-00",
+            description="Test fixture for a documented PNC value.",
+        ),
+        TransportOwnershipType(
+            code="PNC_OWN_OWNED",
+            name_ru="Собственный транспорт",
+            ics_section="03.100.10",
+            ref_system="ISO / LogRef",
+            ref_code="OWN",
+            description="Test fixture for a documented PNC value.",
+        ),
+        TransportOwnershipType(
+            code="PNC_OWN_LEASED",
+            name_ru="Финансовый/оперативный лизинг",
+            ics_section="03.100.10",
+            ref_system="ISO / LogRef",
+            ref_code="LEA",
+            description="Test fixture for a documented PNC value.",
+        ),
     ]
     db_session.add_all(rows)
     await db_session.commit()
@@ -141,6 +192,12 @@ async def reference_rows(db_session: AsyncSession) -> dict[str, str]:
         "other_crane_type": "GANTRY_CRANE",
         "warehouse_type": "UNIVERSAL",
         "other_warehouse_type": "FINISHED_GOODS",
+        "transport_type": "LIGHT_COMMERCIAL",
+        "other_transport_type": "HEAVY_TRUCK",
+        "transport_scope": "REGIONAL",
+        "other_transport_scope": "NATIONAL",
+        "transport_ownership_type": "PNC_OWN_OWNED",
+        "other_transport_ownership_type": "PNC_OWN_LEASED",
     }
 
 

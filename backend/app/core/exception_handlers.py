@@ -8,6 +8,10 @@ from app.core.exceptions import (
     EquipmentTypeNotFoundError,
     LiftingEquipmentNotFoundError,
     ProductionFacilityNotFoundError,
+    TransportNotFoundError,
+    TransportOwnershipTypeNotFoundError,
+    TransportScopeNotFoundError,
+    TransportTypeNotFoundError,
     WarehouseNotFoundError,
     WarehouseTypeNotFoundError,
 )
@@ -84,6 +88,46 @@ async def lifting_equipment_not_found_handler(
 async def crane_type_not_found_handler(
     request: Request,
     exc: CraneTypeNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def transport_not_found_handler(
+    request: Request,
+    exc: TransportNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def transport_type_not_found_handler(
+    request: Request,
+    exc: TransportTypeNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def transport_scope_not_found_handler(
+    request: Request,
+    exc: TransportScopeNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def transport_ownership_type_not_found_handler(
+    request: Request,
+    exc: TransportOwnershipTypeNotFoundError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
