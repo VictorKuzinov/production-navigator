@@ -61,3 +61,23 @@ class TransportScopeNotFoundError(Exception):
 class TransportOwnershipTypeNotFoundError(Exception):
     """Transport ownership type not found."""
     pass
+
+
+class MaterialNotFoundError(Exception):
+    """Material not found."""
+    pass
+
+
+class MaterialGroupNotFoundError(Exception):
+    """Material group not found."""
+    pass
+
+
+class DuplicateMaterialError(Exception):
+    """Duplicate material found."""
+    pass
+
+
+class MaterialInUseError(Exception):
+    """Material is referenced by material items."""
+    pass

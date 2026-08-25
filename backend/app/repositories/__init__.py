@@ -1,6 +1,7 @@
 from app.repositories.enterprises import EnterpriseProfileRepository
 from app.repositories.equipments import EquipmentRepository
 from app.repositories.lifting_equipments import LiftingEquipmentRepository
+from app.repositories.materials import MaterialRepository
 from app.repositories.production_facilities import ProductionFacilityRepository
 from app.repositories.references import ReferenceRepository
 from app.repositories.transports import TransportRepository
@@ -12,6 +13,7 @@ __all__ = [
     "ProductionFacilityRepository",
     "EquipmentRepository",
     "LiftingEquipmentRepository",
+    "MaterialRepository",
     "TransportRepository",
     "WarehouseRepository",
 ]

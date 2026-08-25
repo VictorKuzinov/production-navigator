@@ -7,6 +7,7 @@ from app.db.dependencies import get_session
 from app.repositories import (
     EquipmentRepository,
     LiftingEquipmentRepository,
+    MaterialRepository,
     ProductionFacilityRepository,
     ReferenceRepository,
     TransportRepository,
@@ -16,6 +17,7 @@ from app.repositories.enterprises import EnterpriseProfileRepository
 from app.services.enterprises import EnterpriseProfileService
 from app.services.equipments import EquipmentService
 from app.services.lifting_equipments import LiftingEquipmentService
+from app.services.materials import MaterialService
 from app.services.production_facilities import ProductionFacilityService
 from app.services.transports import TransportService
 from app.services.warehouses import WarehouseService
@@ -74,6 +76,18 @@ def get_warehouse_service(
     return WarehouseService(
         repository,
         enterprise_repository,
+        reference_repository,
+    )
+
+
+def get_material_service(
+    session: SessionDep,
+) -> MaterialService:
+    repository = MaterialRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return MaterialService(
+        repository,
         reference_repository,
     )
 

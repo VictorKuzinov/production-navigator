@@ -3,10 +3,14 @@ from fastapi.responses import JSONResponse
 
 from app.core.exceptions import (
     CraneTypeNotFoundError,
+    DuplicateMaterialError,
     EnterpriseProfileNotFoundError,
     EquipmentNotFoundError,
     EquipmentTypeNotFoundError,
     LiftingEquipmentNotFoundError,
+    MaterialGroupNotFoundError,
+    MaterialInUseError,
+    MaterialNotFoundError,
     ProductionFacilityNotFoundError,
     TransportNotFoundError,
     TransportOwnershipTypeNotFoundError,
@@ -131,5 +135,45 @@ async def transport_ownership_type_not_found_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def material_not_found_handler(
+    request: Request,
+    exc: MaterialNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def material_group_not_found_handler(
+    request: Request,
+    exc: MaterialGroupNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def duplicate_material_handler(
+    request: Request,
+    exc: DuplicateMaterialError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={"detail": str(exc)},
+    )
+
+
+async def material_in_use_handler(
+    request: Request,
+    exc: MaterialInUseError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
         content={"detail": str(exc)},
     )
