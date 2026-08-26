@@ -80,6 +80,7 @@ class MaterialItem(Base):
             "dimension_1",
             "unit_of_measure",
             name="uq_pnc_material_item_form_dimension_unit",
+            postgresql_nulls_not_distinct=True,
         ),
         Index(
             "ix_pnc_material_item_material_form",
