@@ -174,6 +174,85 @@ grade_name не равен NULL, не пуст и содержит непроб�
 - Обоснование: глобальная марка может использоваться зависимыми каталоговыми и
   продуктовыми данными; их неявное уничтожение недопустимо.
 
+## Правила валидации и lifecycle MaterialItem
+
+### BR_MAT_004
+
+- Название: Валидность глобального варианта материала
+- Приоритет (Severity): ERROR
+- Категория: MaterialItem Validation
+- Назначение: Не допускать неоднозначные или физически некорректные записи в
+  глобальном каталоге вариантов материалов.
+- Логика:
+
+```text
+material_id ссылается на существующий Material
+И
+material_form_code ссылается на существующий MaterialForm
+И
+unit_of_measure входит в {kg, m, m2, m3, l, pcs}
+И
+(dimension_1 IS NULL ИЛИ dimension_1 — конечное число > 0)
+И
+(material_form_code != LIQUID_CHEMICAL ИЛИ dimension_1 IS NULL)
+И
+(material_id, material_form_code, dimension_1, unit_of_measure) уникальна,
+причём NULL в dimension_1 равен NULL для целей uniqueness
+```
+
+- Семантика размера: `dimension_1` хранится только в `mm` и трактуется как
+  form-specific primary dimension, определённый в `04_domain_model.md`. Это
+  coarse attribute, не полная геометрия. Для всех forms, кроме
+  `LIQUID_CHEMICAL`, размер optional; его `NULL` означает, что размер не
+  участвует в identity и не детализирован.
+- Семантика единицы: `unit_of_measure` — базовая единица количества catalog
+  item, а не единица `dimension_1`. Принимается только точное ASCII spelling
+  `kg`, `m`, `m2`, `m3`, `l`, `pcs`; free text, silent trim, case folding,
+  automatic conversion и packaging units не допускаются. Матрица
+  `MaterialForm × unit_of_measure` не вводится.
+- Область применения: application/API layer проверяет правило при create и при
+  PATCH unused item на итоговом состоянии после объединения текущих и
+  переданных полей. Новый DB `CHECK` для диапазона или form rule не вводится.
+- DB uniqueness: целевой constraint использует PostgreSQL
+  `UNIQUE NULLS NOT DISTINCT`; application duplicate pre-check даёт понятную
+  доменную ошибку, DB остаётся authoritative backstop.
+- Обоснование: единая form-specific семантика и canonical vocabulary делают
+  identity воспроизводимой без добавления новых полей в MVP.
+
+### BR_MAT_005
+
+- Название: Неизменяемость используемого варианта материала
+- Приоритет (Severity): ERROR
+- Категория: MaterialItem Lifecycle
+- Назначение: Не допускать скрытого изменения описания материала уже связанных
+  Products и destructive cascade при удалении shared master-data.
+- Логика:
+
+```text
+ЕСЛИ на MaterialItem не ссылается ни один Product
+ТО PATCH identity fields и DELETE разрешены
+
+ЕСЛИ на MaterialItem ссылается хотя бы один Product
+ТО MaterialItem immutable:
+PATCH material_id, material_form_code, dimension_1 или unit_of_measure запрещён
+И
+DELETE запрещён
+```
+
+- PATCH unused item: omitted-поле сохраняется, пустой PATCH `{}` является
+  no-op, explicit `NULL` допустим только для `dimension_1`. Non-nullable поля
+  очистить нельзя. При переходе на `LIQUID_CHEMICAL` существующий non-NULL
+  `dimension_1` очищается явным `dimension_1: null` в том же PATCH.
+- Новый вариант: если требуется иной физический вариант, создаётся новый
+  `MaterialItem`, после чего нужные Products явно переводятся на новый
+  `material_item_id`.
+- DELETE used item: отклоняется application/service layer; Product не
+  удаляется и его обязательный `material_item_id` не обнуляется. DB FK без
+  `CASCADE` и `SET NULL` остаётся последним integrity backstop.
+- Обоснование: `Product` хранит только `material_item_id` и не имеет snapshot.
+  Изменение используемой identity-записи иначе молча изменило бы описание
+  материала для всех связанных Products.
+
 ## BR_COM_001
 - Название: Юридический комплаенс для нефтегазового сектора
 - Приоритет (Severity): ERROR ⭐⭐⭐⭐⭐

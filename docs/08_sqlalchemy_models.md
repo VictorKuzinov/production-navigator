@@ -577,6 +577,7 @@ class MaterialItem(Base):
             "dimension_1",
             "unit_of_measure",
             name="uq_pnc_material_item_form_dimension_unit",
+            postgresql_nulls_not_distinct=True,
         ),
         Index(
             "ix_pnc_material_item_material_form",
@@ -718,7 +719,41 @@ class ProductionOrder(Base):
 - Для связи `EnterpriseProfile` ↔ `QualityCapability` используется отношение 1:1: `profile_id` имеет `unique=True`, а родительская связь — `cascade="all, delete-orphan"` и `single_parent=True`. Отдельный дублирующий `Index` не нужен.
 - `Region.profiles`, `CompanySize.profiles`, `CertificateType.certificates`, `Industry.enterprise_links` и остальные обратные стороны `back_populates` присутствуют в целевой схеме; временно закомментированных отношений в приведённом целевом коде нет.
 - ИНН и ОГРН хранятся как строки, поскольку это идентификаторы, а не числа для вычислений.
-- Уникальность материала определяется парой `(group_code, grade_name)`. Уникальность варианта материала учитывает материал, форму, размер и единицу измерения.
+- `MaterialItem` — глобальная shared/master-data запись без `profile_id`; она
+  не является stock, quantity, batch, procurement или pricing entity и может
+  использоваться Products разных профилей.
+- `MaterialItem.dimension_1` — nullable form-specific primary linear dimension
+  в canonical unit `mm`. Если значение задано, application/API layer требует
+  конечное число строго больше `0`; для `LIQUID_CHEMICAL` допустим только
+  `NULL`. Полная геометрия и второй размер в MVP не моделируются. Новый DB
+  `CHECK` для range/form rules не вводится.
+- `MaterialItem.unit_of_measure` означает canonical base quantity unit catalog
+  item, а не единицу `dimension_1`. Application/API layer принимает только
+  точные codes `kg`, `m`, `m2`, `m3`, `l`, `pcs` без free text, silent trim,
+  case folding, automatic conversion и packaging units. Новая reference table,
+  seed и матрица `MaterialForm × unit_of_measure` не вводятся.
+- Уникальность материала определяется парой `(group_code, grade_name)`.
+  Логическая identity варианта материала — `(material_id,
+  material_form_code, dimension_1, unit_of_measure)`. Constraint
+  `uq_pnc_material_item_form_dimension_unit` использует PostgreSQL
+  `NULLS NOT DISTINCT`, поэтому NULL-размер не позволяет создать второй
+  логически одинаковый item. Application duplicate pre-check сохраняется для
+  доменной ошибки, а DB constraint является authoritative backstop.
+- Для перехода от фактического обычного `UNIQUE` к целевому
+  `UNIQUE NULLS NOT DISTINCT` требуется отдельная migration под PostgreSQL 16.
+  До пересоздания constraint выполняется data preflight NULL-дублей. Migration
+  не удаляет и не объединяет их молча; ссылки Products на duplicate IDs
+  разрешаются только явным data mapping.
+- Пока `MaterialItem` не используется `Product`, service layer разрешает PATCH
+  четырёх identity fields и DELETE при соблюдении итоговых references,
+  validation и uniqueness. Explicit `NULL` допустим только для
+  `dimension_1`; omitted сохраняет значение, пустой PATCH является no-op.
+- `MaterialItem`, используемый хотя бы одним `Product`, immutable: PATCH любого
+  identity field и DELETE отклоняются service layer. Для другого физического
+  варианта создаётся новый item и Product явно переводится на новый FK.
+  Relationship `MaterialItem.products` не имеет destructive cascade, а
+  `Product.material_item_id` остаётся `NOT NULL` FK без `ON DELETE CASCADE` и
+  `ON DELETE SET NULL`.
 - Повторно выданные сертификаты одного типа допустимы, но полный дубль по профилю, типу, дате выдачи и дате окончания запрещён.
 - Наличие миграций в рабочем дереве не означает, что они проверены, закоммичены или применены к PostgreSQL. Состояние цепочки, `upgrade()`, `downgrade()` и фактической базы проверяется отдельно перед внедрением; этот документ не фиксирует все миграции как завершённые.
 

@@ -303,8 +303,8 @@ Product
 
 - `MaterialGroup` — группа материала из корпоративного справочника PNC;
 - `Material` — конкретная марка материала;
-- `MaterialItem` — вариант материала по форме поставки, размеру и единице
-  измерения;
+- `MaterialItem` — вариант материала по форме поставки, form-specific размеру
+  и базовой единице количества;
 - `Product` — изделие предприятия, использующее `MaterialItem`.
 
 ### Material
@@ -351,13 +351,94 @@ explicit `NULL` допустим только для nullable-поля `density`
 
 ### MaterialItem
 
+`MaterialItem` — глобальная shared/master-data запись варианта конкретного
+`Material`. Она не принадлежит отдельному `EnterpriseProfile`, не имеет
+`profile_id` и может использоваться `Product` разных профилей. Запись не
+является складским остатком, партией, количеством, закупочной или ценовой
+позицией.
+
 | Поле | Обязательное | Описание |
 |------|--------------|----------|
 | `id` | Да | Идентификатор варианта материала |
 | `material_id` | Да | Конкретная марка из `Material` |
 | `material_form_code` | Да | Код формы поставки из `MaterialForm` |
-| `dimension_1` | Нет | Основной размер варианта материала |
-| `unit_of_measure` | Да | Единица измерения |
+| `dimension_1` | Нет | Form-specific основной линейный размер варианта в мм |
+| `unit_of_measure` | Да | Canonical base quantity unit catalog item |
+
+`material_id` должен ссылаться на существующий `Material`, а
+`material_form_code` — на существующий `MaterialForm`. Новые business-поля и
+второй размер в MVP не вводятся.
+
+`dimension_1` — coarse MVP attribute, а не полное описание геометрии. Его
+семантика определяется формой поставки:
+
+| `material_form_code` | Семантика `dimension_1` |
+|----------------------|-------------------------|
+| `BAR_ROUND` | Номинальный диаметр поперечного сечения |
+| `BAR_PROFILE` | Наибольший внешний размер поперечного сечения профиля |
+| `SHEET_PLATE` | Номинальная толщина листа или плиты |
+| `TUBE_PIPE` | Наибольший внешний размер поперечного сечения: наружный диаметр круглой трубы или большая наружная сторона профильной трубы |
+| `WIRE_STRIP` | Наименьший размер поперечного сечения: диаметр круглой проволоки или толщина ленты |
+| `GRANULES_POWDER` | Номинальный размер частицы или гранулы, представленный одним значением, не диапазоном |
+| `CAST_FORG_BLANK` | Наибольший общий габарит описываемой заготовки |
+| `LIQUID_CHEMICAL` | Неприменимо; значение обязано быть `NULL` |
+
+Для всех форм, кроме `LIQUID_CHEMICAL`, `dimension_1` остаётся optional. Если
+значение задано, оно хранится в canonical physical unit `mm`, должно быть
+конечным числом строго больше `0`; `0`, `NaN`, `Infinity` и `-Infinity`
+недопустимы. `NULL` означает, что размер не участвует в identity записи и не
+детализирован. Модель не различает причину отсутствия: для
+`LIQUID_CHEMICAL` это неприменимость, для остальных форм размер может быть
+неизвестен или намеренно не детализирован. Значения разных forms нельзя
+сравнивать как одну универсальную геометрическую характеристику.
+
+`unit_of_measure` не является единицей `dimension_1`. Поле задаёт базовую
+единицу количества catalog item и принимает ровно одно из значений:
+`kg`, `m`, `m2`, `m3`, `l`, `pcs`. Произвольный текст, варианты `KG` и `кг`,
+silent trim, case folding, автоматическая конверсия и упаковочные единицы вроде
+`roll`, `bag`, `barrel` или `sheet` не допускаются. Новая reference table и
+seed не создаются. Матрица допустимости `MaterialForm × unit_of_measure` в MVP
+не вводится.
+
+Логическая identity записи:
+
+```text
+(material_id, material_form_code, dimension_1, unit_of_measure)
+```
+
+Четвёрка уникальна, причём `NULL` в `dimension_1` считается равным `NULL` для
+целей uniqueness. Целевой DB contract — PostgreSQL
+`UNIQUE NULLS NOT DISTINCT`. Application/service duplicate pre-check нужен для
+понятной доменной ошибки, а DB constraint остаётся authoritative backstop.
+Перед отдельной migration необходимо проверить существующие NULL-дубли;
+migration не должна молча удалять или объединять их. Если разные duplicate IDs
+уже используются `Product`, требуется явный data mapping. Range/form rules для
+`dimension_1` остаются на application/API layer; новый DB `CHECK` не вводится.
+
+Lifecycle зависит от использования записью `Product`:
+
+- пока на `MaterialItem` не ссылается ни один `Product`, PATCH может изменять
+  `material_id`, `material_form_code`, `dimension_1` и `unit_of_measure` с
+  проверкой итоговых references, form-specific dimension, canonical unit и
+  uniqueness; DELETE разрешён;
+- для unused item omitted-поле сохраняет текущее значение, пустой PATCH `{}`
+  является no-op, explicit `NULL` разрешён только для `dimension_1`;
+  `material_id`, `material_form_code` и `unit_of_measure` очистить нельзя;
+- если form меняется на `LIQUID_CHEMICAL`, итоговый `dimension_1` обязан быть
+  `NULL`; при существующем non-NULL размере клиент передаёт
+  `dimension_1: null` в том же PATCH;
+- как только на item ссылается хотя бы один `Product`, item становится
+  immutable: PATCH любого из четырёх identity fields отклоняется;
+- DELETE используемого item отклоняется application/service layer. Связанные
+  Products не удаляются, а `Product.material_item_id` не обнуляется. FK без
+  `ON DELETE CASCADE` и `ON DELETE SET NULL` остаётся последним integrity
+  backstop.
+
+Если нужен другой физический вариант, создаётся новый `MaterialItem`, после
+чего нужный `Product` явно переводится на новый `material_item_id`. Скрытое
+распространение reclassification через PATCH используемой shared-записи не
+допускается. Для `MaterialItem` требуется ресурсный CRUD, но конкретные route
+names определяются на этапе реализации по conventions проекта.
 
 ### Product
 
