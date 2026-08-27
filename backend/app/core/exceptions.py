@@ -81,3 +81,28 @@ class DuplicateMaterialError(Exception):
 class MaterialInUseError(Exception):
     """Material is referenced by material items."""
     pass
+
+
+class MaterialItemNotFoundError(Exception):
+    """Material item not found."""
+    pass
+
+
+class MaterialFormNotFoundError(Exception):
+    """Material form not found."""
+    pass
+
+
+class DuplicateMaterialItemError(Exception):
+    """Duplicate material item found."""
+    pass
+
+
+class MaterialItemInUseError(Exception):
+    """Material item is referenced by products."""
+    pass
+
+
+class InvalidMaterialItemError(Exception):
+    """Material item violates a cross-field domain invariant."""
+    pass

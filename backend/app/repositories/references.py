@@ -7,6 +7,7 @@ from app.models import (
     CraneType,
     EquipmentType,
     Industry,
+    MaterialForm,
     MaterialGroup,
     Region,
     TransportOwnershipType,
@@ -60,6 +61,12 @@ class ReferenceRepository:
         code: str,
     ) -> MaterialGroup | None:
         return await self._get_by_code(MaterialGroup, code)
+
+    async def get_material_form_by_code(
+        self,
+        code: str,
+    ) -> MaterialForm | None:
+        return await self._get_by_code(MaterialForm, code)
 
     async def get_warehouse_type_by_code(
         self,

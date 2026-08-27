@@ -7,6 +7,7 @@ from app.db.dependencies import get_session
 from app.repositories import (
     EquipmentRepository,
     LiftingEquipmentRepository,
+    MaterialItemRepository,
     MaterialRepository,
     ProductionFacilityRepository,
     ReferenceRepository,
@@ -17,6 +18,7 @@ from app.repositories.enterprises import EnterpriseProfileRepository
 from app.services.enterprises import EnterpriseProfileService
 from app.services.equipments import EquipmentService
 from app.services.lifting_equipments import LiftingEquipmentService
+from app.services.material_items import MaterialItemService
 from app.services.materials import MaterialService
 from app.services.production_facilities import ProductionFacilityService
 from app.services.transports import TransportService
@@ -88,6 +90,20 @@ def get_material_service(
 
     return MaterialService(
         repository,
+        reference_repository,
+    )
+
+
+def get_material_item_service(
+    session: SessionDep,
+) -> MaterialItemService:
+    repository = MaterialItemRepository(session)
+    material_repository = MaterialRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return MaterialItemService(
+        repository,
+        material_repository,
         reference_repository,
     )
 

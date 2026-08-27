@@ -5,12 +5,17 @@ from app.core import settings
 from app.core.exception_handlers import (
     crane_type_not_found_handler,
     duplicate_material_handler,
+    duplicate_material_item_handler,
     enterprise_profile_not_found_handler,
     equipment_not_found_handler,
     equipment_type_not_found_handler,
+    invalid_material_item_handler,
     lifting_equipment_not_found_handler,
+    material_form_not_found_handler,
     material_group_not_found_handler,
     material_in_use_handler,
+    material_item_in_use_handler,
+    material_item_not_found_handler,
     material_not_found_handler,
     production_facility_not_found_handler,
     transport_not_found_handler,
@@ -23,12 +28,17 @@ from app.core.exception_handlers import (
 from app.core.exceptions import (
     CraneTypeNotFoundError,
     DuplicateMaterialError,
+    DuplicateMaterialItemError,
     EnterpriseProfileNotFoundError,
     EquipmentNotFoundError,
     EquipmentTypeNotFoundError,
+    InvalidMaterialItemError,
     LiftingEquipmentNotFoundError,
+    MaterialFormNotFoundError,
     MaterialGroupNotFoundError,
     MaterialInUseError,
+    MaterialItemInUseError,
+    MaterialItemNotFoundError,
     MaterialNotFoundError,
     ProductionFacilityNotFoundError,
     TransportNotFoundError,
@@ -122,6 +132,31 @@ app.add_exception_handler(
 app.add_exception_handler(
     MaterialInUseError,
     material_in_use_handler,
+)
+
+app.add_exception_handler(
+    MaterialItemNotFoundError,
+    material_item_not_found_handler,
+)
+
+app.add_exception_handler(
+    MaterialFormNotFoundError,
+    material_form_not_found_handler,
+)
+
+app.add_exception_handler(
+    DuplicateMaterialItemError,
+    duplicate_material_item_handler,
+)
+
+app.add_exception_handler(
+    MaterialItemInUseError,
+    material_item_in_use_handler,
+)
+
+app.add_exception_handler(
+    InvalidMaterialItemError,
+    invalid_material_item_handler,
 )
 
 app.include_router(api_router)
