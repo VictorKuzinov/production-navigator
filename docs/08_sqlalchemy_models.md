@@ -754,6 +754,33 @@ class ProductionOrder(Base):
   Relationship `MaterialItem.products` не имеет destructive cascade, а
   `Product.material_item_id` остаётся `NOT NULL` FK без `ON DELETE CASCADE` и
   `ON DELETE SET NULL`.
+- `Product` — profile-owned record: `profile_id` задаёт ownership и не меняется
+  через Product PATCH. `product_type_code` и `material_item_id` остаются
+  обязательными FK; глобальный MaterialItem не требует profile ownership
+  match. Пара `(profile_id, sku_code)` защищена существующим exact,
+  case-sensitive constraint `uq_pnc_product_profile_sku`.
+- На application/API layer перед validation и persistence удаляются leading и
+  trailing whitespace из `Product.sku_code` и `Product.name`; whitespace-only
+  значения запрещены, регистр сохраняется. Duplicate pre-check create/PATCH
+  использует resulting trimmed SKU, а DB constraint остаётся authoritative
+  backstop. DB `CHECK` для trim и case normalization не вводится.
+- `Product.weight_net` хранится в `kg` и должен быть конечным числом строго
+  больше `0`; `required_it_grade` поддерживает nullable integer subset
+  IT1–IT18 (`1..18`); `required_ra` хранится в `µm` и при заданном значении
+  должна быть конечным числом строго больше `0`. Range/unit rules остаются на
+  application/API layer; ORM columns и migration не меняются.
+- Пока Product не используется `ProductionOrder`, service layer разрешает
+  PATCH всех business fields кроме `profile_id` и DELETE при соблюдении
+  resulting validation. Omitted сохраняет значение, explicit `NULL` допустим
+  только для `required_it_grade` и `required_ra`, пустой PATCH является no-op.
+  Product, используемый хотя бы одним ProductionOrder, immutable и не
+  удаляется: PATCH переданного business field и DELETE отклоняются
+  `ProductInUseError` с HTTP 409. Relationship `Product.orders` не имеет
+  destructive cascade, а `ProductionOrder.product_id` остаётся `NOT NULL` FK
+  без `ON DELETE CASCADE` и `ON DELETE SET NULL`.
+- Утверждённый Product contract не требует изменения ORM, migration, indexes,
+  seeds или существующих ProductType references; новый DB/data этап перед
+  vertical slice не нужен.
 - Повторно выданные сертификаты одного типа допустимы, но полный дубль по профилю, типу, дате выдачи и дате окончания запрещён.
 - Наличие миграций в рабочем дереве не означает, что они проверены, закоммичены или применены к PostgreSQL. Состояние цепочки, `upgrade()`, `downgrade()` и фактической базы проверяется отдельно перед внедрением; этот документ не фиксирует все миграции как завершённые.
 

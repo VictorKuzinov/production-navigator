@@ -442,6 +442,11 @@ names определяются на этапе реализации по convent
 
 ### Product
 
+`Product` — профильная номенклатурная запись изделия конкретного
+`EnterpriseProfile`. Она не является глобальной master-data записью:
+`profile_id` задаёт ownership Product и после создания не изменяется через
+Product PATCH.
+
 | Поле | Обязательное | Описание |
 |------|--------------|----------|
 | `id` | Да | Идентификатор изделия |
@@ -456,6 +461,54 @@ names определяются на этапе реализации по convent
 
 Прямого поля `Product.material_id` в целевой модели нет: материал определяется
 через `Product → MaterialItem → Material`.
+
+`profile_id` должен ссылаться на существующий `EnterpriseProfile`,
+`product_type_code` — на существующий `ProductType`, а `material_item_id` — на
+существующий глобальный `MaterialItem`. Поскольку MaterialItem не принадлежит
+профилю, дополнительная ownership-проверка между Product и MaterialItem не
+вводится.
+
+Перед validation и сохранением для `sku_code` и `name` удаляются leading и
+trailing whitespace. Результат должен содержать хотя бы один непробельный
+символ и укладываться в ORM lengths `100` и `255` соответственно. Регистр
+сохраняется: uppercase/lowercase normalization и case folding не выполняются.
+Пара `(profile_id, sku_code)` уникальна по persisted trimmed значению с exact,
+case-sensitive semantics. Application/service duplicate pre-check при create и
+в resulting-state PATCH возвращает `DuplicateProductError` с HTTP 409, а
+существующий DB `UNIQUE (profile_id, sku_code)` остаётся authoritative
+race-condition backstop. Новый DB `CHECK` для trim не вводится.
+
+`weight_net` хранится в `kg`, является обязательным конечным числом строго
+больше `0`; верхняя граница в MVP не устанавливается. `required_it_grade`
+поддерживает nullable integer subset `1..18`, соответствующий IT1–IT18;
+остальные designation этим MVP-полем не представляются. `required_ra` хранится
+в `µm`; если значение задано, оно должно быть конечным числом строго больше
+`0`, без новой верхней границы. `NULL` в quality fields означает, что
+соответствующее требование не указано.
+
+Lifecycle зависит от использования Product записью `ProductionOrder`:
+
+- пока на Product не ссылается ни один ProductionOrder, PATCH может изменять
+  `product_type_code`, `material_item_id`, `sku_code`, `name`, `weight_net`,
+  `required_it_grade` и `required_ra` с проверкой resulting references,
+  normalization, ranges и uniqueness; `profile_id` не входит в update payload;
+- omitted-поле сохраняет текущее значение, пустой PATCH `{}` является no-op,
+  explicit `NULL` разрешён только для `required_it_grade` и `required_ra`;
+  остальные поля очистить нельзя;
+- как только на Product ссылается хотя бы один ProductionOrder, Product
+  становится immutable: PATCH любого переданного business field отклоняется
+  `ProductInUseError` с HTTP 409; пустой PATCH без переданных полей остаётся
+  no-op;
+- DELETE используемого Product отклоняется `ProductInUseError` с HTTP 409.
+  Связанные ProductionOrder не удаляются, а обязательный
+  `ProductionOrder.product_id` не обнуляется;
+- DELETE неиспользуемого Product разрешён.
+
+Отсутствующий Product и отсутствующие обязательные references отображаются в
+HTTP 404 по conventions проекта. Range/nullability и blank-string violations
+являются request validation errors с HTTP 422. Эти правила реализуются на
+application/API layer; существующая ORM-модель, миграция, indexes и seeds не
+изменяются.
 
 ## 7. Качество, сертификаты и заказы
 

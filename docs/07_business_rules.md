@@ -253,6 +253,100 @@ DELETE запрещён
   Изменение используемой identity-записи иначе молча изменило бы описание
   материала для всех связанных Products.
 
+## Правила валидации и lifecycle Product
+
+### BR_PRD_001
+
+- Название: Валидность профильного изделия
+- Приоритет (Severity): ERROR
+- Категория: Product Validation
+- Назначение: Не допускать неоднозначные, физически некорректные или
+  несвязанные с утверждёнными references Product records.
+- Логика:
+
+```text
+profile_id ссылается на существующий EnterpriseProfile
+И
+product_type_code ссылается на существующий ProductType
+И
+material_item_id ссылается на существующий глобальный MaterialItem
+И
+sku_code и name после trim leading/trailing whitespace не пусты
+И
+weight_net — конечное число > 0 в kg
+И
+(required_it_grade IS NULL ИЛИ required_it_grade входит в integer range 1..18)
+И
+(required_ra IS NULL ИЛИ required_ra — конечное число > 0 в µm)
+И
+(profile_id, trimmed sku_code) уникальна с exact case-sensitive semantics
+```
+
+- Text normalization: application layer сохраняет trimmed `sku_code` и `name`.
+  Регистр сохраняется; uppercase/lowercase normalization и case folding не
+  выполняются. Length limits `100`/`255` проверяются после trim.
+- Scope: `profile_id` задаёт ownership Product и поступает из parent-scoped
+  create route, а не из request body. Глобальный MaterialItem не требует
+  совпадения с каким-либо profile ownership.
+- Numeric semantics: `weight_net` хранится в `kg`, `required_ra` — в `µm`.
+  Верхние границы для этих полей в MVP не вводятся. Nullable quality fields
+  используют `NULL` как состояние «требование не указано». Product
+  `required_it_grade` намеренно поддерживает только integer subset IT1–IT18;
+  остальные designation не кодируются этим MVP field.
+- Duplicate contract: application/service pre-check на create и
+  resulting-state PATCH вызывает `DuplicateProductError`, который отображается
+  в HTTP 409. Текущий DB `UNIQUE (profile_id, sku_code)` остаётся authoritative
+  race-condition backstop, поскольку в нём хранится уже trimmed SKU с теми же
+  exact case-sensitive semantics.
+- DB boundary: новый DB `CHECK` для trim/range не вводится; ORM, migration,
+  indexes и seeds не меняются.
+- Обоснование: canonical physical units, ограниченный IT subset и
+  воспроизводимая persisted identity дают однозначный MVP contract без
+  изменения существующей DB-модели.
+
+### BR_PRD_002
+
+- Название: Неизменяемость Product, используемого производственным заказом
+- Приоритет (Severity): ERROR
+- Категория: Product Lifecycle
+- Назначение: Не допускать скрытого ретроспективного изменения Product
+  requirements у связанных ProductionOrder и destructive cascade при удалении.
+- Логика:
+
+```text
+ЕСЛИ на Product не ссылается ни один ProductionOrder
+ТО PATCH business fields и DELETE разрешены
+
+ЕСЛИ на Product ссылается хотя бы один ProductionOrder
+ТО Product immutable:
+PATCH любого переданного business field запрещён
+И
+DELETE запрещён
+```
+
+- PATCH unused Product: можно изменять `product_type_code`,
+  `material_item_id`, `sku_code`, `name`, `weight_net`, `required_it_grade` и
+  `required_ra`; `profile_id` immutable и не входит в update payload.
+- Resulting-state validation: references, text normalization, numeric ranges и
+  `(profile_id, sku_code)` uniqueness проверяются после объединения текущих и
+  переданных значений.
+- PATCH presence semantics: omitted-поле сохраняется; пустой PATCH `{}`
+  является no-op, в том числе для используемого Product; explicit `NULL`
+  допустим только для `required_it_grade` и `required_ra`. Non-nullable fields
+  очистить нельзя.
+- Used Product: PATCH с любым переданным business field и DELETE вызывают
+  `ProductInUseError`, отображаемый в HTTP 409, даже если переданное значение
+  совпадает с текущим.
+- DELETE used Product: ProductionOrder не удаляется, а обязательный
+  `ProductionOrder.product_id` не обнуляется. FK без `ON DELETE CASCADE` и
+  `ON DELETE SET NULL` остаётся последним integrity backstop.
+- Изменение спецификации: создаётся новый Product/SKU; новые ProductionOrder
+  должны ссылаться на него. Versioning/BOM и изменение lifecycle самого
+  ProductionOrder не вводятся этим правилом.
+- Обоснование: ProductionOrder хранит только `product_id` и не имеет snapshot
+  Product fields. Mutable used Product иначе молча изменял бы материал, тип,
+  массу и quality requirements уже связанных заказов.
+
 ## BR_COM_001
 - Название: Юридический комплаенс для нефтегазового сектора
 - Приоритет (Severity): ERROR ⭐⭐⭐⭐⭐
