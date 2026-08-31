@@ -2,12 +2,12 @@
 
 ## Назначение и статус
 
-Документ фиксирует фактически внедрённый стандарт автоматизированного тестирования backend Production Navigator. Основной test runner — `pytest`. Текущая suite находится в `backend/tests/` и проверяет завершённые вертикальные срезы `EnterpriseProfile`, `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`, `Transport`, `Material` и `MaterialItem`.
+Документ фиксирует фактически внедрённый стандарт автоматизированного тестирования backend Production Navigator. Основной test runner — `pytest`. Текущая suite находится в `backend/tests/` и проверяет завершённые вертикальные срезы `EnterpriseProfile`, `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`, `Transport`, `Material`, `MaterialItem` и `Product`.
 
 Последний подтверждённый полный запуск завершён успешно:
 
 ```text
-274 passed in 11.11s
+375 passed in 13.32s
 ```
 
 Этот результат является текущим regression baseline. Документ не задаёт будущую CI-архитектуру, требования к coverage или альтернативную test database.
@@ -108,7 +108,7 @@ AsyncClient(transport=transport, base_url="http://testserver")
 
 Regression test добавляется для каждого подтверждённого дефекта приложения или нарушенного backend-контракта и проверяет поведение, а не наличие метода или строки кода.
 
-Текущая suite содержит шесть зафиксированных групп регрессий:
+Текущая suite содержит семь зафиксированных групп регрессий:
 
 1. **ProductionFacility PATCH.** Ранее PATCH endpoint существовал, но `ProductionFacilityService.update` был удалён. `test_patch_production_facility_persists_changes` выполняет create → GET → PATCH → GET и подтверждает сохранение нового значения через полный API flow.
 2. **Warehouse PATCH nullability.** Runtime ранее принимал explicit `null` для ORM non-nullable полей. Schema и API tests подтверждают отказ с validation/HTTP 422 для `warehouse_type_code`, `total_capacity_cube` и `temperature_control`, а также разрешённую очистку nullable `max_load_sqm`.
@@ -147,6 +147,16 @@ Regression test добавляется для каждого подтвержд�
    допускает пустой no-op. MaterialItem, используемый `Product`,
    immutable и не удаляется; неиспользуемый item
    удаляется.
+7. **Product profile scope, identity, validation и lifecycle.** Schema,
+   service, repository и API tests защищают profile-scoped create/list и
+   глобальные item routes, обязательные `ProductType`/`MaterialItem` references,
+   trim leading/trailing whitespace с сохранением case и exact case-sensitive
+   uniqueness `(profile_id, sku_code)` при create и resulting-state PATCH.
+   Проверяются finite positive `weight_net`/`required_ra`, диапазон
+   `required_it_grade=1..18`, explicit `null` только для nullable quality
+   fields, omitted/explicit-null PATCH semantics и пустой no-op. Product с
+   ProductionOrder immutable и не удаляется; unused Product допускает PATCH и
+   DELETE.
 
 Regression expectation не подгоняется под дефект. Если тест выявляет новый production bug, production-код исправляется отдельным remediation cycle, а тест сохраняет требуемый контракт.
 
@@ -154,15 +164,15 @@ Regression expectation не подгоняется под дефект. Если
 
 | Уровень | Тестов |
 |---|---:|
-| Schemas | 96 |
-| Services | 88 |
-| Repositories | 18 |
-| API/integration | 72 |
-| **Всего** | **274** |
+| Schemas | 139 |
+| Services | 111 |
+| Repositories | 21 |
+| API/integration | 104 |
+| **Всего** | **375** |
 
 Подсчёт учитывает собранные pytest cases, включая параметризованные сценарии,
 и соответствует подтверждённому результату последнего полного запуска:
-`274 passed in 11.11s`.
+`375 passed in 13.32s`.
 
 Срез `Transport` добавил 56 tests: schemas — 19, services — 19,
 repositories — 2, API/integration — 16. Вместе с предыдущим baseline из 89
@@ -174,9 +184,12 @@ repositories — 3, API/integration — 16. Вместе с post-Transport basel
 
 Срез `MaterialItem` добавил 77 tests: schemas — 33, services — 17,
 repositories — 3, API/integration — 24. Вместе с post-Material baseline из
-197 tests это даёт текущий подтверждённый итог 274. Итоговые
-layer counts: 96 schemas + 88 services + 18 repositories + 72 API/integration =
-274.
+197 tests это дало исторический post-MaterialItem итог 274.
+
+Срез `Product` добавил 101 test: schemas — 43, services — 23,
+repositories — 3, API/integration — 32. Вместе с post-MaterialItem baseline из
+274 tests это даёт текущий подтверждённый итог 375. Итоговые layer counts:
+139 schemas + 111 services + 21 repositories + 104 API/integration = 375.
 
 ## Финальная проверка Transport
 
@@ -283,6 +296,55 @@ Manual Swagger smoke на development backend подтвердил только 
 - MaterialItem `id=1` после удаления Product удалён через API с HTTP 200.
 - Synthetic Material `id=2` намеренно сохранён для будущих
   development smoke tests; cleanup является намеренно частичным.
+
+## Финальная проверка Product
+
+После интеграции Product на реальном working backend выполнены
+автоматизированные проверки:
+
+- `ruff check app tests` → `All checks passed!`;
+- полный `pytest` → `375 passed in 13.32s`.
+
+### POSITIVE PATH
+
+1. `POST /api/v1/material-items` вернул HTTP 200 и создал временный
+   MaterialItem `id=2`.
+2. `GET /api/v1/enterprises/2/products` до create вернул HTTP 200 и `[]`.
+3. `POST /api/v1/enterprises/2/products` вернул HTTP 200 и создал Product
+   `id=2`, `profile_id=2`; outer whitespace был удалён из
+   `sku_code=Product-Smoke-20260831A` и `name=Product Smoke 20260831A`, case
+   сохранился.
+4. `GET /api/v1/products/2` и `GET /api/v1/enterprises/2/products` вернули
+   HTTP 200; get/list identity совпала с созданной записью.
+5. `PATCH /api/v1/products/2` с body `{"required_ra":null}` вернул HTTP 200,
+   применил explicit null и сохранил остальные fields.
+6. После отдельного cleanup временного ProductionOrder
+   `DELETE /api/v1/products/2` и `DELETE /api/v1/material-items/2` вернули
+   HTTP 200 и удалили оба временных объекта.
+
+### NEGATIVE / EXCEPTION PATH
+
+1. Отсутствующий EnterpriseProfile вызвал `EnterpriseProfileNotFoundError`:
+   HTTP 404, ожидаемый `detail` — PASS.
+2. Неизвестный ProductType вызвал `ProductTypeNotFoundError`: HTTP 404,
+   ожидаемый `detail` — PASS.
+3. Отсутствующий MaterialItem вызвал `MaterialItemNotFoundError`: HTTP 404,
+   ожидаемый `detail` — PASS.
+4. Отсутствующий Product вызвал `ProductNotFoundError`: HTTP 404, ожидаемый
+   `detail` — PASS.
+5. Повторный create с тем же resulting trimmed SKU вызвал
+   `DuplicateProductError`: HTTP 409, ожидаемый `detail` — PASS.
+6. Whitespace-only `sku_code` вернул HTTP 422; validation `detail` содержал
+   `type`, `loc=["body","sku_code"]`, `msg` и `input=""` — PASS.
+7. При временном `ProductionOrder id=1` пустой PATCH `{}` вернул HTTP 200 и
+   не изменил Product; non-empty PATCH вызвал `ProductInUseError` с HTTP 409 и
+   ожидаемым `detail`; DELETE вызвал `ProductInUseError` с HTTP 409 и ожидаемым
+   `detail` — PASS.
+
+Swagger отображал фактически проверенные custom `404/409` responses как
+`Undocumented`, при этом реальные statuses и bodies соответствовали контракту.
+Временный ProductionOrder был удалён отдельной approved DB cleanup operation;
+Product и MaterialItem удалены через API.
 
 ## Стандартные команды
 

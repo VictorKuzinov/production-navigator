@@ -5,6 +5,7 @@ from app.core.exceptions import (
     CraneTypeNotFoundError,
     DuplicateMaterialError,
     DuplicateMaterialItemError,
+    DuplicateProductError,
     EnterpriseProfileNotFoundError,
     EquipmentNotFoundError,
     EquipmentTypeNotFoundError,
@@ -16,7 +17,10 @@ from app.core.exceptions import (
     MaterialItemInUseError,
     MaterialItemNotFoundError,
     MaterialNotFoundError,
+    ProductInUseError,
     ProductionFacilityNotFoundError,
+    ProductNotFoundError,
+    ProductTypeNotFoundError,
     TransportNotFoundError,
     TransportOwnershipTypeNotFoundError,
     TransportScopeNotFoundError,
@@ -230,5 +234,45 @@ async def invalid_material_item_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=422,
+        content={"detail": str(exc)},
+    )
+
+
+async def product_not_found_handler(
+    request: Request,
+    exc: ProductNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def product_type_not_found_handler(
+    request: Request,
+    exc: ProductTypeNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
+
+
+async def duplicate_product_handler(
+    request: Request,
+    exc: DuplicateProductError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={"detail": str(exc)},
+    )
+
+
+async def product_in_use_handler(
+    request: Request,
+    exc: ProductInUseError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
         content={"detail": str(exc)},
     )

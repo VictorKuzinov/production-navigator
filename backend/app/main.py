@@ -6,6 +6,7 @@ from app.core.exception_handlers import (
     crane_type_not_found_handler,
     duplicate_material_handler,
     duplicate_material_item_handler,
+    duplicate_product_handler,
     enterprise_profile_not_found_handler,
     equipment_not_found_handler,
     equipment_type_not_found_handler,
@@ -17,6 +18,9 @@ from app.core.exception_handlers import (
     material_item_in_use_handler,
     material_item_not_found_handler,
     material_not_found_handler,
+    product_in_use_handler,
+    product_not_found_handler,
+    product_type_not_found_handler,
     production_facility_not_found_handler,
     transport_not_found_handler,
     transport_ownership_type_not_found_handler,
@@ -29,6 +33,7 @@ from app.core.exceptions import (
     CraneTypeNotFoundError,
     DuplicateMaterialError,
     DuplicateMaterialItemError,
+    DuplicateProductError,
     EnterpriseProfileNotFoundError,
     EquipmentNotFoundError,
     EquipmentTypeNotFoundError,
@@ -40,7 +45,10 @@ from app.core.exceptions import (
     MaterialItemInUseError,
     MaterialItemNotFoundError,
     MaterialNotFoundError,
+    ProductInUseError,
     ProductionFacilityNotFoundError,
+    ProductNotFoundError,
+    ProductTypeNotFoundError,
     TransportNotFoundError,
     TransportOwnershipTypeNotFoundError,
     TransportScopeNotFoundError,
@@ -157,6 +165,26 @@ app.add_exception_handler(
 app.add_exception_handler(
     InvalidMaterialItemError,
     invalid_material_item_handler,
+)
+
+app.add_exception_handler(
+    ProductNotFoundError,
+    product_not_found_handler,
+)
+
+app.add_exception_handler(
+    ProductTypeNotFoundError,
+    product_type_not_found_handler,
+)
+
+app.add_exception_handler(
+    DuplicateProductError,
+    duplicate_product_handler,
+)
+
+app.add_exception_handler(
+    ProductInUseError,
+    product_in_use_handler,
 )
 
 app.include_router(api_router)

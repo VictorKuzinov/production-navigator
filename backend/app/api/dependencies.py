@@ -10,6 +10,7 @@ from app.repositories import (
     MaterialItemRepository,
     MaterialRepository,
     ProductionFacilityRepository,
+    ProductRepository,
     ReferenceRepository,
     TransportRepository,
     WarehouseRepository,
@@ -21,6 +22,7 @@ from app.services.lifting_equipments import LiftingEquipmentService
 from app.services.material_items import MaterialItemService
 from app.services.materials import MaterialService
 from app.services.production_facilities import ProductionFacilityService
+from app.services.products import ProductService
 from app.services.transports import TransportService
 from app.services.warehouses import WarehouseService
 
@@ -104,6 +106,22 @@ def get_material_item_service(
     return MaterialItemService(
         repository,
         material_repository,
+        reference_repository,
+    )
+
+
+def get_product_service(
+    session: SessionDep,
+) -> ProductService:
+    repository = ProductRepository(session)
+    enterprise_repository = EnterpriseProfileRepository(session)
+    material_item_repository = MaterialItemRepository(session)
+    reference_repository = ReferenceRepository(session)
+
+    return ProductService(
+        repository,
+        enterprise_repository,
+        material_item_repository,
         reference_repository,
     )
 

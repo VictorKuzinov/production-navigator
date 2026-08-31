@@ -9,6 +9,7 @@ from app.models import (
     Industry,
     MaterialForm,
     MaterialGroup,
+    ProductType,
     Region,
     TransportOwnershipType,
     TransportScope,
@@ -67,6 +68,12 @@ class ReferenceRepository:
         code: str,
     ) -> MaterialForm | None:
         return await self._get_by_code(MaterialForm, code)
+
+    async def get_product_type_by_code(
+        self,
+        code: str,
+    ) -> ProductType | None:
+        return await self._get_by_code(ProductType, code)
 
     async def get_warehouse_type_by_code(
         self,

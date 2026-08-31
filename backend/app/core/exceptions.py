@@ -106,3 +106,23 @@ class MaterialItemInUseError(Exception):
 class InvalidMaterialItemError(Exception):
     """Material item violates a cross-field domain invariant."""
     pass
+
+
+class ProductNotFoundError(Exception):
+    """Product not found."""
+    pass
+
+
+class ProductTypeNotFoundError(Exception):
+    """Product type not found."""
+    pass
+
+
+class DuplicateProductError(Exception):
+    """Duplicate product found."""
+    pass
+
+
+class ProductInUseError(Exception):
+    """Product is referenced by production orders."""
+    pass
