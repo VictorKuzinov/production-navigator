@@ -108,7 +108,7 @@ AsyncClient(transport=transport, base_url="http://testserver")
 
 Regression test добавляется для каждого подтверждённого дефекта приложения или нарушенного backend-контракта и проверяет поведение, а не наличие метода или строки кода.
 
-Текущая suite содержит семь зафиксированных групп регрессий:
+Текущая suite содержит восемь зафиксированных групп регрессий:
 
 1. **ProductionFacility PATCH.** Ранее PATCH endpoint существовал, но `ProductionFacilityService.update` был удалён. `test_patch_production_facility_persists_changes` выполняет create → GET → PATCH → GET и подтверждает сохранение нового значения через полный API flow.
 2. **Warehouse PATCH nullability.** Runtime ранее принимал explicit `null` для ORM non-nullable полей. Schema и API tests подтверждают отказ с validation/HTTP 422 для `warehouse_type_code`, `total_capacity_cube` и `temperature_control`, а также разрешённую очистку nullable `max_load_sqm`.
@@ -157,6 +157,12 @@ Regression test добавляется для каждого подтвержд�
    fields, omitted/explicit-null PATCH semantics и пустой no-op. Product с
    ProductionOrder immutable и не удаляется; unused Product допускает PATCH и
    DELETE.
+8. **OpenAPI custom error responses.** Generated OpenAPI regression tests
+   проверяют точный manifest из 41 operation с custom 404 и 9 operations с
+   custom 409, отсутствие over-documentation на остальных routes, общую
+   `ErrorResponse(detail: str)` schema и сохранение существующих 200/422.
+   Runtime handlers и service behavior этими tests не подменяются; полный JSON
+   snapshot OpenAPI не используется.
 
 Regression expectation не подгоняется под дефект. Если тест выявляет новый production bug, production-код исправляется отдельным remediation cycle, а тест сохраняет требуемый контракт.
 
@@ -167,12 +173,12 @@ Regression expectation не подгоняется под дефект. Если
 | Schemas | 139 |
 | Services | 111 |
 | Repositories | 21 |
-| API/integration | 104 |
-| **Всего** | **375** |
+| API/integration | 107 |
+| **Всего** | **378** |
 
 Подсчёт учитывает собранные pytest cases, включая параметризованные сценарии,
 и соответствует подтверждённому результату последнего полного запуска:
-`375 passed in 13.32s`.
+`378 passed in 14.42s`.
 
 Срез `Transport` добавил 56 tests: schemas — 19, services — 19,
 repositories — 2, API/integration — 16. Вместе с предыдущим baseline из 89
@@ -190,6 +196,10 @@ repositories — 3, API/integration — 24. Вместе с post-Material baseli
 repositories — 3, API/integration — 32. Вместе с post-MaterialItem baseline из
 274 tests это даёт текущий подтверждённый итог 375. Итоговые layer counts:
 139 schemas + 111 services + 21 repositories + 104 API/integration = 375.
+
+OpenAPI custom error response regression добавляет 3 API tests. Итоговые
+layer counts после системного OpenAPI fix: 139 schemas + 111 services +
+21 repositories + 107 API/integration = 378.
 
 ## Финальная проверка Transport
 

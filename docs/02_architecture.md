@@ -183,6 +183,36 @@ ProductionOrder  ─────────────────────
 
 `Industry` описывает отрасль или рынок применения в терминах Production Navigator. Для предприятия это обслуживаемый рыночный сегмент, для заказа — отрасль конечного применения. Основной `OKVED` не назначает основную `Industry` автоматически; однозначное сопоставление между этими классификациями не определено.
 
+## HTTP error contract и OpenAPI
+
+Runtime contract custom HTTP errors задаётся application exception, его
+зарегистрированным FastAPI handler и фактическим `JSONResponse`. Регистрация
+handler не добавляет response в generated OpenAPI автоматически.
+
+Для каждого route все реально достижимые custom statuses объявляются локально
+через `responses=error_responses(...)`. Общий helper из
+`backend/app/api/error_responses.py` публикует одну shared schema
+`ErrorResponse` с обязательным строковым полем `detail`.
+
+Пример:
+
+```python
+@router.patch(
+    "/products/{product_id}",
+    response_model=ProductRead,
+    responses=error_responses(404, 409),
+)
+```
+
+Route не должен объявлять status, который не достижим в его service flow.
+Глобальные `responses` на `FastAPI` или `APIRouter` не используются для
+custom application errors, если они over-document-ят другие operations.
+
+Новый vertical slice считается документированным только тогда, когда его
+custom handler status/body согласован с shared error schema, route-local
+declaration добавлена одновременно с endpoint, а generated OpenAPI contract
+покрыт regression test без full-schema snapshot.
+
 ## 1. Производственный профиль
 
 Назначение:

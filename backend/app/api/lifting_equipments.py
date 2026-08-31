@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_lifting_equipment_service
+from app.api.error_responses import error_responses
 from app.schemas import (
     LiftingEquipmentCreate,
     LiftingEquipmentRead,
@@ -21,6 +22,7 @@ LiftingEquipmentDep = Annotated[
 @router.get(
     "/enterprises/{profile_id}/lifting-equipment",
     response_model=list[LiftingEquipmentRead],
+    responses=error_responses(404),
 )
 async def list_lifting_equipment(
     profile_id: int,
@@ -32,6 +34,7 @@ async def list_lifting_equipment(
 @router.post(
     "/enterprises/{profile_id}/lifting-equipment",
     response_model=LiftingEquipmentRead,
+    responses=error_responses(404),
 )
 async def create_lifting_equipment(
     profile_id: int,
@@ -44,6 +47,7 @@ async def create_lifting_equipment(
 @router.get(
     "/lifting-equipment/{lifting_equipment_id}",
     response_model=LiftingEquipmentRead,
+    responses=error_responses(404),
 )
 async def get_lifting_equipment(
     lifting_equipment_id: int,
@@ -55,6 +59,7 @@ async def get_lifting_equipment(
 @router.patch(
     "/lifting-equipment/{lifting_equipment_id}",
     response_model=LiftingEquipmentRead,
+    responses=error_responses(404),
 )
 async def update_lifting_equipment(
     lifting_equipment_id: int,
@@ -67,6 +72,7 @@ async def update_lifting_equipment(
 @router.delete(
     "/lifting-equipment/{lifting_equipment_id}",
     response_model=LiftingEquipmentRead,
+    responses=error_responses(404),
 )
 async def delete_lifting_equipment(
     lifting_equipment_id: int,

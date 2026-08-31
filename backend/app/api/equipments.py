@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_equipment_service
+from app.api.error_responses import error_responses
 from app.schemas import (
     EquipmentCreate,
     EquipmentRead,
@@ -22,6 +23,7 @@ EquipmentDep = Annotated[
 @router.get(
     "/enterprises/{profile_id}/facilities/{facility_id}/equipment",
     response_model=list[EquipmentRead],
+    responses=error_responses(404),
 )
 async def list_equipments(
     profile_id: int,
@@ -36,6 +38,7 @@ async def list_equipments(
 @router.post(
     "/enterprises/{profile_id}/facilities/{facility_id}/equipment",
     response_model=EquipmentRead,
+    responses=error_responses(404),
 )
 async def create_equipment(
     profile_id: int,
@@ -52,6 +55,7 @@ async def create_equipment(
 @router.get(
     "/equipment/{equipment_id}",
     response_model=EquipmentRead,
+    responses=error_responses(404),
 )
 async def get_equipment(
     equipment_id: int,
@@ -64,6 +68,7 @@ async def get_equipment(
 @router.patch(
     "/equipment/{equipment_id}",
     response_model=EquipmentRead,
+    responses=error_responses(404),
 )
 async def patch_equipment(
     equipment_id: int,
@@ -78,6 +83,7 @@ async def patch_equipment(
 @router.delete(
     "/equipment/{equipment_id}",
     response_model=EquipmentRead,
+    responses=error_responses(404),
 )
 async def delete_equipment( 
     equipment_id: int,

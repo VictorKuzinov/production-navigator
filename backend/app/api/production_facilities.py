@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_facility_service
+from app.api.error_responses import error_responses
 from app.schemas import (
     ProductionFacilityCreate,
     ProductionFacilityRead,
@@ -24,6 +25,7 @@ ProductionFacilityDep = Annotated[
 @router.get(
     "/enterprises/{profile_id}/facilities",
     response_model=list[ProductionFacilityRead],
+    responses=error_responses(404),
 )
 async def list_facilities(
     profile_id: int,
@@ -35,6 +37,7 @@ async def list_facilities(
 @router.post(
     "/enterprises/{profile_id}/facilities",
     response_model=ProductionFacilityRead,
+    responses=error_responses(404),
 )
 async def create_facility(
     profile_id: int,
@@ -47,6 +50,7 @@ async def create_facility(
 @router.get(
     "/facilities/{facility_id}",
     response_model=ProductionFacilityRead,
+    responses=error_responses(404),
 )
 async def get_facility(
     facility_id: int,
@@ -58,6 +62,7 @@ async def get_facility(
 @router.patch(
     "/facilities/{facility_id}",
     response_model=ProductionFacilityRead,
+    responses=error_responses(404),
 )
 async def update_facility(
     facility_id: int,
@@ -70,6 +75,7 @@ async def update_facility(
 @router.delete(
     "/facilities/{facility_id}",
     response_model=ProductionFacilityRead,
+    responses=error_responses(404),
 )
 async def delete_facility(
     facility_id: int,

@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_warehouse_service
+from app.api.error_responses import error_responses
 from app.schemas import WarehouseCreate, WarehouseRead, WarehouseUpdate
 from app.services.warehouses import WarehouseService
 
@@ -19,6 +20,7 @@ WarehouseDep = Annotated[
 @router.get(
     "/enterprises/{profile_id}/warehouses",
     response_model=list[WarehouseRead],
+    responses=error_responses(404),
 )
 async def list_warehouses(
     profile_id: int,
@@ -30,6 +32,7 @@ async def list_warehouses(
 @router.post(
     "/enterprises/{profile_id}/warehouses",
     response_model=WarehouseRead,
+    responses=error_responses(404),
 )
 async def create_warehouse(
     profile_id: int,
@@ -42,6 +45,7 @@ async def create_warehouse(
 @router.get(
     "/warehouses/{warehouse_id}",
     response_model=WarehouseRead,
+    responses=error_responses(404),
 )
 async def get_warehouse(
     warehouse_id: int,
@@ -53,6 +57,7 @@ async def get_warehouse(
 @router.patch(
     "/warehouses/{warehouse_id}",
     response_model=WarehouseRead,
+    responses=error_responses(404),
 )
 async def update_warehouse(
     warehouse_id: int,
@@ -65,6 +70,7 @@ async def update_warehouse(
 @router.delete(
     "/warehouses/{warehouse_id}",
     response_model=WarehouseRead,
+    responses=error_responses(404),
 )
 async def delete_warehouse(
     warehouse_id: int,

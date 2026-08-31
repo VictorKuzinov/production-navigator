@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_material_service
+from app.api.error_responses import error_responses
 from app.schemas import MaterialCreate, MaterialRead, MaterialUpdate
 from app.services.materials import MaterialService
 
@@ -28,6 +29,7 @@ async def list_materials(service: MaterialDep):
 @router.post(
     "",
     response_model=MaterialRead,
+    responses=error_responses(404, 409),
 )
 async def create_material(
     material: MaterialCreate,
@@ -39,6 +41,7 @@ async def create_material(
 @router.get(
     "/{material_id}",
     response_model=MaterialRead,
+    responses=error_responses(404),
 )
 async def get_material(
     material_id: int,
@@ -50,6 +53,7 @@ async def get_material(
 @router.patch(
     "/{material_id}",
     response_model=MaterialRead,
+    responses=error_responses(404, 409),
 )
 async def update_material(
     material_id: int,
@@ -62,6 +66,7 @@ async def update_material(
 @router.delete(
     "/{material_id}",
     response_model=MaterialRead,
+    responses=error_responses(404, 409),
 )
 async def delete_material(
     material_id: int,

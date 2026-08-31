@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_transport_service
+from app.api.error_responses import error_responses
 from app.schemas import TransportCreate, TransportRead, TransportUpdate
 from app.services.transports import TransportService
 
@@ -17,6 +18,7 @@ TransportDep = Annotated[
 @router.get(
     "/enterprises/{profile_id}/transports",
     response_model=list[TransportRead],
+    responses=error_responses(404),
 )
 async def list_transports(
     profile_id: int,
@@ -28,6 +30,7 @@ async def list_transports(
 @router.post(
     "/enterprises/{profile_id}/transports",
     response_model=TransportRead,
+    responses=error_responses(404),
 )
 async def create_transport(
     profile_id: int,
@@ -40,6 +43,7 @@ async def create_transport(
 @router.get(
     "/transports/{transport_id}",
     response_model=TransportRead,
+    responses=error_responses(404),
 )
 async def get_transport(
     transport_id: int,
@@ -51,6 +55,7 @@ async def get_transport(
 @router.patch(
     "/transports/{transport_id}",
     response_model=TransportRead,
+    responses=error_responses(404),
 )
 async def update_transport(
     transport_id: int,
@@ -63,6 +68,7 @@ async def update_transport(
 @router.delete(
     "/transports/{transport_id}",
     response_model=TransportRead,
+    responses=error_responses(404),
 )
 async def delete_transport(
     transport_id: int,

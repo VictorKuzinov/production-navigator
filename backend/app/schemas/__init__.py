@@ -8,6 +8,7 @@ from app.schemas.equipments import (
     EquipmentRead,
     EquipmentUpdate,
 )
+from app.schemas.errors import ErrorResponse
 from app.schemas.lifting_equipments import (
     LiftingEquipmentCreate,
     LiftingEquipmentRead,
@@ -46,6 +47,7 @@ __all__ = [
     "EquipmentCreate",
     "EquipmentRead",
     "EquipmentUpdate",
+    "ErrorResponse",
     "LiftingEquipmentCreate",
     "LiftingEquipmentRead",
     "LiftingEquipmentUpdate",
