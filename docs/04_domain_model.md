@@ -1,624 +1,275 @@
 # Доменная модель
 
-## 1. Назначение и статус документа
+## 1. Назначение и статус
 
-Документ описывает понятия предметной области и их бизнес-смысл. Если для
-сущности приведён состав полей, он соответствует принятой целевой ORM-модели из
-`08_sqlalchemy_models.md`. Точные типы SQLAlchemy, ограничения, индексы,
-каскады и имена `relationship()` определяются в `08_sqlalchemy_models.md`.
+Документ задаёт логическую модель **TARGET MVP** и отдельно фиксирует
+подтверждённые **CURRENT** facts и **LATER** concepts. Он не утверждает новые
+ORM classes, tables, migrations, cascades или API routes.
 
-Предметные потребности, для которых способ хранения ещё не утверждён, собраны
-отдельно в разделе 8. Они не являются ORM-сущностями и не расширяют целевую
-схему автоматически.
-
-## 2. Основные связи
+## 2. TARGET MVP domain tree
 
 ```text
-EnterpriseProfile
-├── EnterpriseOKVED ── OKVED
-├── EnterpriseIndustry ── Industry
-├── ProductionFacility
-├── Warehouse
-├── LiftingEquipment
-├── Transport
-├── Equipment ── ProductionFacility
-├── Product ── MaterialItem ── Material ── MaterialGroup
-│                  └── MaterialForm
-├── EnterpriseCertificate ── CertificateType
-├── QualityCapability
-└── ProductionOrder ── Product / OrderType / Industry
+PROFILE DOMAIN
+└── EnterpriseProfile
+    ├── Product → ProductType / MaterialItem → Material
+    ├── Equipment → EquipmentType
+    ├── ProfileTechnologyCapability → TechnologyType
+    ├── ProfileMaterialCapability → MaterialGroup / Material
+    ├── QualityCapability
+    ├── EnterpriseCertificate → CertificateType
+    ├── Region
+    └── ProfileSectionCompleteness
+
+MARKET OPPORTUNITY DOMAIN
+└── ProcurementOpportunity
+    ├── provenance + external identity
+    ├── display / market fields
+    └── structured requirements
+
+MATCHING APPLICATION DOMAIN
+├── MatchAssessment
+│   └── CriterionResult / explanation
+└── Ranked TOP-10 projection
+
+EXECUTION / ERP DOMAIN — LATER
+└── ProductionOrder (CURRENT foundation, frozen semantics pending redesign)
 ```
 
-Регистрационный профиль, рыночная классификация и производственные возможности
-являются разными измерениями:
+`ProcurementOpportunity` не является дочерним объектом `EnterpriseProfile`.
+`MatchAssessment` связывает inputs логически только на время оценки; способ его
+хранения не утверждён.
+
+## 3. CURRENT domain facts
+
+В рабочей ORM существуют:
+
+- `EnterpriseProfile` и регистрационные/классификационные связи;
+- `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`,
+  `Transport`;
+- `Material`, `MaterialItem`, `Product`;
+- `QualityCapability`, `EnterpriseCertificate`;
+- `ProductionOrder` и `OrderType`.
+
+`ProductionOrder` принадлежит профилю и ссылается на Product. Он не содержит
+provenance внешнего источника и не представляет закупку до matching. Product
+lifecycle CURRENT частично зависит от наличия `ProductionOrder`.
+
+В CURRENT отсутствуют runtime concepts `ProcurementOpportunity`, profile
+technology/material capability links, section completeness и end-to-end
+matching/TOP-10.
+
+## 4. EnterpriseProfile в TARGET MVP
+
+`EnterpriseProfile` остаётся root profile domain. Для Matching v1 используются
+только факты с понятной семантикой и происхождением:
+
+- Product/ProductType — небольшой опытный signal;
+- Equipment — подтверждённые типы и технические limits;
+- Technology capability;
+- Material capability;
+- QualityCapability;
+- EnterpriseCertificate;
+- Region;
+- section completeness metadata.
+
+OKVED и Industry не являются доказательством production capability и не входят
+в scoring v1.
+
+## 5. ProfileTechnologyCapability — TARGET logical concept
+
+Минимальный логический контракт:
+
+| Fact | Назначение |
+|------|------------|
+| profile identity | Владелец capability |
+| `TechnologyType.code` | Нормализованная технология |
+| state: `SUPPORTED/UNSUPPORTED/UNKNOWN` | Подтверждённый capability outcome |
+| optional evidence/notes | Объяснение без отдельного workflow |
+
+Окончательные model/table names и привязка к Equipment/Facility не утверждены.
+
+## 6. ProfileMaterialCapability — TARGET logical concept
+
+Минимальный логический контракт:
+
+| Fact | Назначение |
+|------|------------|
+| profile identity | Владелец capability |
+| `MaterialGroup` и optional конкретный `Material` | Грубая или точная область обработки |
+| state: `SUPPORTED/UNSUPPORTED/UNKNOWN` | Подтверждённый capability outcome |
+| optional evidence/notes | Объяснение |
+
+Material form, stock, thickness range и полная геометрия не добавляются без
+потребности первой fixture.
+
+## 7. ProfileSectionCompleteness — TARGET logical concept
+
+Минимальные states:
 
 ```text
-OKVED                       → официальная зарегистрированная деятельность
-Industry                    → внутренний отраслевой или рыночный сегмент PNC
-Product, Equipment, ...     → реальные производственные возможности
+CONFIRMED_COMPLETE
+PARTIAL
+UNKNOWN
 ```
 
-`EnterpriseOKVED.is_primary` и `EnterpriseIndustry.is_primary` имеют разный
-смысл. Автоматическое сопоставление `OKVED → Industry` не определено.
+Concept относится к section/scope/snapshot, имеет human confirmer и timestamp.
+Import, seed, default, row count и progress percentage не создают
+`CONFIRMED_COMPLETE`. Изменение подтверждённого section переводит его в
+`PARTIAL`.
 
-## 3. Корпоративные справочники PNC
+Persistence и UI confirmation flow будут спроектированы отдельно; semantics
+уже утверждена.
 
-Утверждённые корпоративные справочники наследуют единый набор полей
-`PNCBaseReference`:
+## 8. ProcurementOpportunity — TARGET MVP
 
-| Поле | Обязательное | Доменный смысл |
-|------|--------------|----------------|
-| `code` | Да | Стабильный внутренний бизнес-идентификатор PNC |
-| `name_ru` | Да | Отображаемое русское наименование |
-| `ics_section` | Нет | Раздел ISO ICS, когда применимо |
-| `ref_system` | Да | Внешняя классификационная или нормативная система |
-| `ref_code` | Да | Код значения во внешней системе |
-| `description` | Нет | Содержательное описание и область применения |
+`ProcurementOpportunity` представляет одну независимо оцениваемую внешнюю
+закупку, lot или коммерческий запрос.
 
-`code` и `ref_code` не взаимозаменяемы. Например, внутренний код региона
-`PNC_REG_66` сопоставляется с `ISO 3166-2 / RU-SVE`.
+Он:
 
-В целевую модель входят следующие справочники:
+- не принадлежит `EnterpriseProfile`;
+- не является `Product`;
+- не является `ProductionOrder`;
+- не является выигранным контрактом;
+- сохраняет provenance и external identity;
+- содержит требования внешнего заказчика.
 
-| Сущность | Назначение |
-|----------|------------|
-| `CompanySize` | Размер предприятия в классификации PNC |
-| `Region` | Регион в классификации PNC с внешним географическим сопоставлением |
-| `Industry` | Внутренний отраслевой или рыночный сегмент PNC |
-| `EquipmentType` | Тип производственного оборудования |
-| `TechnologyType` | Тип производственной технологии или операции |
-| `MaterialGroup` | Макрокатегория или группа материала |
-| `MaterialForm` | Форма поставки материала |
-| `ProductType` | Тип продукции |
-| `CraneType` | Тип подъёмного оборудования |
-| `TransportType` | Вид автомобильного транспорта в текущем MVP |
-| `TransportScope` | Сфера перевозок |
-| `TransportOwnershipType` | Форма владения транспортом |
-| `WarehouseType` | Тип склада |
-| `CertificateType` | Тип сертификата или разрешительного документа |
-| `OrderType` | Тип производственного заказа |
-
-`MaterialGroup` в принятой ORM является корпоративным справочником без
-`parent_id`. Историческая иерархическая таблица групп не входит в целевую
-модель.
-
-`TechnologyType` утверждён как справочник, но способ связи технологии с
-конкретным предприятием, оборудованием или площадкой пока не определён.
-
-### Industry
-
-`Industry` описывает отрасль или рынок, который обслуживает предприятие,
-конечное применение продукции либо отраслевой контекст заказа. Справочник
-использует стандартные поля `PNCBaseReference` и сохраняет сопоставление с
-`ISIC Rev.4` через `ref_system` и `ref_code`.
-
-## 4. Профиль предприятия и классификационные связи
-
-### EnterpriseProfile
-
-Цифровой производственный профиль предприятия.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор профиля |
-| `company_name` | Да | Наименование предприятия |
-| `inn` | Нет | ИНН юридического лица |
-| `ogrn` | Нет | ОГРН юридического лица |
-| `website` | Нет | Сайт предприятия |
-| `employees_count` | Нет | Численность сотрудников |
-| `company_size_code` | Нет | Код из `CompanySize` |
-| `region_code` | Нет | Код из `Region` |
-
-Исторические поля `production_type` и `notes` не входят в принятую модель
-`EnterpriseProfile`. Характер производства определяется продукцией, заказами и
-подтверждёнными производственными возможностями.
-
-Внешний провайдер регистрационных сведений не является доменной сущностью.
-Инфраструктурный адаптер нормализует провайдерский ответ, а прикладной сервис
-после подтверждения пользователя сопоставляет данные только с
-`EnterpriseProfile` и `EnterpriseOKVED`. Наименование `api-fns.ru`, его поля и
-структура JSON не входят в доменную модель. Способ аудита источника и времени
-импорта пока не определён и вынесен в backlog.
-
-### OKVED
-
-Локальное иерархическое представление официального российского классификатора
-видов экономической деятельности.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `code` | Да | Код ОКВЭД |
-| `name_ru` | Да | Русское наименование |
-| `parent_code` | Нет | Родительский код в иерархии ОКВЭД |
-| `level` | Да | Уровень значения в иерархии классификатора |
-
-`OKVED` используется для проверки существования кода, локального поиска,
-отображения названий, обхода иерархии и связи предприятия с зарегистрированными
-видами деятельности. Это внешний классификатор с собственной моделью; он не
-наследует `PNCBaseReference`.
-
-### EnterpriseOKVED
-
-Связь предприятия с официально зарегистрированным основным или дополнительным
-кодом ОКВЭД.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор связи |
-| `profile_id` | Да | Производственный профиль предприятия |
-| `okved_code` | Да | Код из локального классификатора `OKVED` |
-| `is_primary` | Да | Признак основного зарегистрированного вида деятельности |
-
-Наименование не дублируется в связи и получается из `OKVED`.
-
-### EnterpriseIndustry
-
-Связь предприятия с внутренним отраслевым или рыночным сегментом PNC.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор связи |
-| `profile_id` | Да | Производственный профиль предприятия |
-| `industry_code` | Да | Внутренний код из `Industry` |
-| `is_primary` | Да | Признак основного рыночного сегмента предприятия в PNC |
-
-## 5. Производственная и логистическая инфраструктура
-
-### ProductionFacility
-
-Производственная площадка предприятия.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор площадки |
-| `profile_id` | Да | Производственный профиль |
-| `facility_name` | Да | Наименование площадки |
-| `total_area` | Да | Общая площадь |
-| `available_area` | Да | Доступная или резервная площадь |
-| `power_capacity` | Нет | Доступная электрическая мощность |
-| `gas_supply` | Да | Наличие газоснабжения |
-| `compressed_air` | Да | Наличие сети сжатого воздуха |
-| `water_supply` | Да | Наличие водоснабжения |
-| `steam_supply` | Да | Наличие пароснабжения |
-
-Высота помещения и допустимая нагрузка на пол рассматривались исторически, но
-не входят в утверждённый состав полей `ProductionFacility`.
-
-### Equipment
-
-Единицы или группы производственного оборудования предприятия, размещённые на
-конкретной производственной площадке.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор |
-| `profile_id` | Да | Производственный профиль |
-| `facility_id` | Да | Производственная площадка |
-| `equipment_type_code` | Да | Код из `EquipmentType` |
-| `cnc` | Да | Наличие ЧПУ |
-| `axes` | Нет | Количество осей |
-| `quantity` | Да | Количество единиц |
-| `max_diameter` | Нет | Максимальный обрабатываемый диаметр |
-| `working_zone_x` | Нет | Размер рабочей зоны по оси X |
-| `working_zone_y` | Нет | Размер рабочей зоны по оси Y |
-| `working_zone_z` | Нет | Размер рабочей зоны по оси Z |
-
-### Warehouse
-
-Склад предприятия определённого типа.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор склада |
-| `profile_id` | Да | Производственный профиль |
-| `warehouse_type_code` | Да | Код из `WarehouseType` |
-| `total_capacity_cube` | Да | Общий объём хранения |
-| `max_load_sqm` | Нет | Максимальная нагрузка на единицу площади |
-| `temperature_control` | Да | Наличие температурного контроля |
-
-### LiftingEquipment
-
-Подъёмное оборудование предприятия всегда принадлежит производственному
-профилю через обязательный `profile_id`. Ссылки `facility_id` и `warehouse_id`
-независимы и nullable. Допустимы все четыре состояния:
-
-- указана только производственная площадка;
-- указан только склад;
-- указаны и производственная площадка, и склад;
-- обе ссылки равны `NULL`.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор |
-| `profile_id` | Да | Производственный профиль |
-| `crane_type_code` | Да | Код из `CraneType` |
-| `facility_id` | Нет | Производственная площадка |
-| `warehouse_id` | Нет | Склад |
-| `load_capacity_tons` | Да | Максимальная грузоподъёмность, т |
-| `max_lift_height` | Нет | Максимальная высота подъёма |
-| `quantity` | Да | Количество единиц |
-
-Между `facility_id` и `warehouse_id` нет XOR: наличие хотя бы одной ссылки не
-требуется, а одновременная привязка не запрещена. Если `facility_id` указан, 
-service layer проверяет, что соответствующая `ProductionFacility` существует и 
-принадлежит тому же `EnterpriseProfile`, что и `LiftingEquipment`. Если `warehouse_id`
-указан, аналогичная проверка выполняется для `Warehouse`.
-
-Внешние ключи остаются дополнительной гарантией ссылочной целостности на уровне
-БД. Проверки существования и принадлежности связанных объектов выполняются в
-прикладном/service layer и не выражаются DB `CHECK` constraint.
-
-### Transport
-
-В текущем MVP `Transport` описывает автомобильное транспортное средство или
-однородную группу автомобильных транспортных средств предприятия либо
-привлечённого перевозчика. Железнодорожный транспорт, подъездные пути, тупики,
-подвижной состав и другая железнодорожная инфраструктура в границу сущности не
-входят; способ их моделирования требует отдельного архитектурного решения.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор |
-| `profile_id` | Да | Производственный профиль |
-| `transport_type_code` | Да | Код из `TransportType` |
-| `transport_scope_code` | Да | Код из `TransportScope` |
-| `transport_ownership_code` | Да | Код из `TransportOwnershipType` |
-| `payload_tons` | Да | Грузоподъёмность одной единицы транспорта, т; значение должно быть больше `0` |
-| `body_volume_cube` | Нет | Объём кузова одной единицы транспорта, м³; `NULL` означает «не указано / неприменимо», указанное значение должно быть больше `0` |
-| `has_refrigeration` | Нет | Подтверждённое наличие (`True`), подтверждённое отсутствие (`False`) или неизвестное/непредоставленное значение (`NULL`) |
-| `quantity` | Да | Количество однотипных транспортных единиц в строке; значение должно быть не меньше `1` |
-
-При `quantity > 1` значения `payload_tons` и `body_volume_cube` остаются
-характеристиками одной единицы, а не суммарными характеристиками группы.
-`body_volume_cube` в MVP не становится обязательным ни для одного
-`TransportType`. Для `has_refrigeration` также нет type-specific запрета или
-требования; default поля — `None`/`NULL`, а не `False`.
-
-Все комбинации существующих `TransportType`, `TransportScope` и
-`TransportOwnershipType` допустимы. Между этими кодами не вводятся cross-field
-restrictions. Две внешне одинаковые записи `Transport` внутри одного профиля
-разрешены: сущность не имеет бизнес-уникальности и одинаковые строки
-автоматически не объединяются.
-
-Понятие «специализация транспорта» из onboarding в MVP выражается сочетанием
-`transport_type_code` и дополнительной характеристики `has_refrigeration`;
-отдельное поле или модель `specialization` не вводится. Диапазоны
-`payload_tons > 0`, `body_volume_cube > 0` при указанном значении и
-`quantity >= 1` проверяются на application/API layer без новых DB `CHECK`
-constraints.
-
-## 6. Материалы и продукция
-
-Принятая цепочка имеет единственный технический смысл:
+### 8.1 Identity
 
 ```text
-MaterialGroup
-      ↓
-Material
-      ↓
-MaterialItem ── MaterialForm
-      ↓
-Product
+(canonical_source, exact_external_id)
 ```
 
-- `MaterialGroup` — группа материала из корпоративного справочника PNC;
-- `Material` — конкретная марка материала;
-- `MaterialItem` — вариант материала по форме поставки, form-specific размеру
-  и базовой единице количества;
-- `Product` — изделие предприятия, использующее `MaterialItem`.
+Один технически самостоятельный lot получает собственный stable external id.
+Изменение title, price, deadlines, status или URL обновляет тот же source
+snapshot и не создаёт новую identity.
 
-### Material
+### 8.2 Минимальные required fields
 
-`Material` — глобальная shared/master-data запись конкретной марки внутри
-`MaterialGroup`. Она не принадлежит отдельному `EnterpriseProfile`, не имеет
-`profile_id` и может использоваться продуктами разных профилей через
-`MaterialItem`. `Material` не является складским запасом, закупочной позицией
-или перечнем материалов, которые конкретное предприятие способно обрабатывать.
+- `source`;
+- `external_id`;
+- `title`;
+- explicit `status`, включая допустимый `UNKNOWN`;
+- минимум один непустой structured matching signal.
 
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор материала |
-| `group_code` | Да | Код из `MaterialGroup` |
-| `grade_name` | Да | Марка материала |
-| `density` | Нет | Плотность материала, кг/м³ |
+Условно обязательны currency при price, unit при quantity, canonical units для
+числовых requirements и `requirement_strength` для каждого item.
 
-```text
-Группа: Нержавеющие и коррозионностойкие стали (STEEL_STAINLESS)
-Марка: 12Х18Н10Т
-Плотность: 7900 кг/м³
-```
+### 8.3 Optional fields
 
-Пара `(group_code, grade_name)` уникальна. `group_code` должен ссылаться на
-существующий `MaterialGroup`. `grade_name` обязателен и на application layer не
-может быть пустым или состоять только из пробельных символов. Новые правила
-автоматического `trim`, нормализации регистра, case folding или
-case-insensitive uniqueness не вводятся; существующий DB `UNIQUE` не меняется.
+- procurement number, customer, source URL;
+- OKPD2 и ProductType context;
+- price/currency;
+- region;
+- quantity/unit;
+- application/execution deadlines;
+- procurement type;
+- material, technology, equipment, dimensions/mass, quality и certificate
+  requirements.
 
-`density` хранится в кг/м³. `NULL` означает, что плотность не указана или
-неизвестна; при заданном значении требуется `density > 0`. Верхняя граница и
-DB `CHECK` для плотности не устанавливаются. При PATCH разрешено изменять
-`group_code`, `grade_name` и `density` с сохранением этих инвариантов;
-explicit `NULL` допустим только для nullable-поля `density`.
+Optional field может быть UNKNOWN. Import не синтезирует значение.
 
-Удаление `Material`, на который ссылается хотя бы один `MaterialItem`, должно
-отклоняться на application/service layer и не должно каскадно уничтожать
-дочерние данные. Настройка ORM relationship/cascade сама по себе не является
-бизнес-разрешением такого удаления. Конкретный API/error contract для
-дубликата определяется при реализации vertical slice по conventions проекта.
+### 8.4 Requirement blocks
 
-Стандарт, твёрдость и произвольные примечания рассматривались как возможные
-характеристики материала, но не входят в утверждённую ORM-модель `Material`.
+Минимальные logical values:
 
-### MaterialItem
+- material: `MaterialGroup`, optional `Material`, form/size только при явном
+  требовании;
+- technology: `TechnologyType.code`;
+- equipment: `EquipmentType.code` и заявленные CNC/axes/work-zone/diameter;
+- dimensions/mass: canonical length/width/height/diameter/mass;
+- quality: IT grade, maximum Ra, measuring/CMM requirements;
+- certificate: `CertificateType.code`, optional explicit
+  `required_by/valid_through`;
+- strength каждого item: `MANDATORY/PREFERRED/UNKNOWN`.
 
-`MaterialItem` — глобальная shared/master-data запись варианта конкретного
-`Material`. Она не принадлежит отдельному `EnterpriseProfile`, не имеет
-`profile_id` и может использоваться `Product` разных профилей. Запись не
-является складским остатком, партией, количеством, закупочной или ценовой
-позицией.
+Полная ORM decomposition requirement blocks не утверждена.
 
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор варианта материала |
-| `material_id` | Да | Конкретная марка из `Material` |
-| `material_form_code` | Да | Код формы поставки из `MaterialForm` |
-| `dimension_1` | Нет | Form-specific основной линейный размер варианта в мм |
-| `unit_of_measure` | Да | Canonical base quantity unit catalog item |
+## 9. MatchAssessment — TARGET logical result
 
-`material_id` должен ссылаться на существующий `Material`, а
-`material_form_code` — на существующий `MaterialForm`. Новые business-поля и
-второй размер в MVP не вводятся.
+Один assessment сравнивает один profile snapshot и одну opportunity snapshot.
+Он должен позволять получить:
 
-`dimension_1` — coarse MVP attribute, а не полное описание геометрии. Его
-семантика определяется формой поставки:
+- `match_status`;
+- `compatibility_score` или `null`;
+- `coverage`;
+- `ranking_score`;
+- `eligibility_reasons[]`;
+- `positive_reasons[]`;
+- `hard_conflicts[]`;
+- `remediable_limitations[]`;
+- `missing_data[]`;
+- `missing_capabilities[]`;
+- воспроизводимый criterion trace.
 
-| `material_form_code` | Семантика `dimension_1` |
-|----------------------|-------------------------|
-| `BAR_ROUND` | Номинальный диаметр поперечного сечения |
-| `BAR_PROFILE` | Наибольший внешний размер поперечного сечения профиля |
-| `SHEET_PLATE` | Номинальная толщина листа или плиты |
-| `TUBE_PIPE` | Наибольший внешний размер поперечного сечения: наружный диаметр круглой трубы или большая наружная сторона профильной трубы |
-| `WIRE_STRIP` | Наименьший размер поперечного сечения: диаметр круглой проволоки или толщина ленты |
-| `GRANULES_POWDER` | Номинальный размер частицы или гранулы, представленный одним значением, не диапазоном |
-| `CAST_FORG_BLANK` | Наибольший общий габарит описываемой заготовки |
-| `LIQUID_CHEMICAL` | Неприменимо; значение обязано быть `NULL` |
+`MatchAssessment` может вычисляться по запросу или сохраняться. Решение о
+persistence, revisioning и cleanup не принято.
 
-Для всех форм, кроме `LIQUID_CHEMICAL`, `dimension_1` остаётся optional. Если
-значение задано, оно хранится в canonical physical unit `mm`, должно быть
-конечным числом строго больше `0`; `0`, `NaN`, `Infinity` и `-Infinity`
-недопустимы. `NULL` означает, что размер не участвует в identity записи и не
-детализирован. Модель не различает причину отсутствия: для
-`LIQUID_CHEMICAL` это неприменимость, для остальных форм размер может быть
-неизвестен или намеренно не детализирован. Значения разных forms нельзя
-сравнивать как одну универсальную геометрическую характеристику.
+## 10. CriterionResult / explanation
 
-`unit_of_measure` не является единицей `dimension_1`. Поле задаёт базовую
-единицу количества catalog item и принимает ровно одно из значений:
-`kg`, `m`, `m2`, `m3`, `l`, `pcs`. Произвольный текст, варианты `KG` и `кг`,
-silent trim, case folding, автоматическая конверсия и упаковочные единицы вроде
-`roll`, `bag`, `barrel` или `sheet` не допускаются. Новая reference table и
-seed не создаются. Матрица допустимости `MaterialForm × unit_of_measure` в MVP
-не вводится.
+Каждый criterion result содержит минимум:
 
-Логическая identity записи:
+- criterion code;
+- procurement requirement value и strength;
+- сравниваемый profile fact и его confirmation/completeness;
+- outcome: positive, hard conflict, remediable, unknown или not applicable;
+- contribution value `0..1` либо UNKNOWN/NOT_APPLICABLE;
+- человекочитаемое explanation.
 
-```text
-(material_id, material_form_code, dimension_1, unit_of_measure)
-```
+Свободный текст без rule/facts не является достаточным объяснением.
 
-Четвёрка уникальна, причём `NULL` в `dimension_1` считается равным `NULL` для
-целей uniqueness. Целевой DB contract — PostgreSQL
-`UNIQUE NULLS NOT DISTINCT`. Application/service duplicate pre-check нужен для
-понятной доменной ошибки, а DB constraint остаётся authoritative backstop.
-Перед отдельной migration необходимо проверить существующие NULL-дубли;
-migration не должна молча удалять или объединять их. Если разные duplicate IDs
-уже используются `Product`, требуется явный data mapping. Range/form rules для
-`dimension_1` остаются на application/API layer; новый DB `CHECK` не вводится.
+## 11. Ranked TOP-10 projection
 
-Lifecycle зависит от использования записью `Product`:
+Projection создаётся после оценки всего входного набора:
 
-- пока на `MaterialItem` не ссылается ни один `Product`, PATCH может изменять
-  `material_id`, `material_form_code`, `dimension_1` и `unit_of_measure` с
-  проверкой итоговых references, form-specific dimension, canonical unit и
-  uniqueness; DELETE разрешён;
-- для unused item omitted-поле сохраняет текущее значение, пустой PATCH `{}`
-  является no-op, explicit `NULL` разрешён только для `dimension_1`;
-  `material_id`, `material_form_code` и `unit_of_measure` очистить нельзя;
-- если form меняется на `LIQUID_CHEMICAL`, итоговый `dimension_1` обязан быть
-  `NULL`; при существующем non-NULL размере клиент передаёт
-  `dimension_1: null` в том же PATCH;
-- как только на item ссылается хотя бы один `Product`, item становится
-  immutable: PATCH любого из четырёх identity fields отклоняется;
-- DELETE используемого item отклоняется application/service layer. Связанные
-  Products не удаляются, а `Product.material_item_id` не обнуляется. FK без
-  `ON DELETE CASCADE` и `ON DELETE SET NULL` остаётся последним integrity
-  backstop.
+1. исключить `NOT_ELIGIBLE` и `INCOMPATIBLE`;
+2. отсортировать по ranking score, coverage и утверждённому tie-break;
+3. вернуть первые десять или меньше, если доступных записей меньше.
 
-Если нужен другой физический вариант, создаётся новый `MaterialItem`, после
-чего нужный `Product` явно переводится на новый `material_item_id`. Скрытое
-распространение reclassification через PATCH используемой shared-записи не
-допускается. Для `MaterialItem` требуется ресурсный CRUD, но конкретные route
-names определяются на этапе реализации по conventions проекта.
+Projection не является saved list, CRM lead или execution order. Persistence
+не утверждена.
 
-### Product
+## 12. ProductionOrder boundary
 
-`Product` — профильная номенклатурная запись изделия конкретного
-`EnterpriseProfile`. Она не является глобальной master-data записью:
-`profile_id` задаёт ownership Product и после создания не изменяется через
-Product PATCH.
+### CURRENT
 
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор изделия |
-| `profile_id` | Да | Производственный профиль |
-| `product_type_code` | Да | Код из `ProductType` |
-| `material_item_id` | Да | Используемый вариант `MaterialItem` |
-| `sku_code` | Да | Код номенклатуры предприятия |
-| `name` | Да | Наименование изделия |
-| `weight_net` | Да | Масса нетто |
-| `required_it_grade` | Нет | Требуемый квалитет IT |
-| `required_ra` | Нет | Требуемая шероховатость Ra |
+- ORM, migration, relationships и indexes существуют;
+- `OrderType` классифицирует внутренний характер производственного заказа;
+- Product lifecycle использует ссылку ProductionOrder как guard.
 
-Прямого поля `Product.material_id` в целевой модели нет: материал определяется
-через `Product → MaterialItem → Material`.
+### TARGET MVP
 
-`profile_id` должен ссылаться на существующий `EnterpriseProfile`,
-`product_type_code` — на существующий `ProductType`, а `material_item_id` — на
-существующий глобальный `MaterialItem`. Поскольку MaterialItem не принадлежит
-профилю, дополнительная ownership-проверка между Product и MaterialItem не
-вводится.
+- сущность исключена из runtime critical path;
+- не принимает внешние закупки;
+- не участвует в matching/ranking;
+- Stage 2/3 и Builder не продолжаются;
+- CURRENT foundation не удаляется этим realignment.
 
-Перед validation и сохранением для `sku_code` и `name` удаляются leading и
-trailing whitespace. Результат должен содержать хотя бы один непробельный
-символ и укладываться в ORM lengths `100` и `255` соответственно. Регистр
-сохраняется: uppercase/lowercase normalization и case folding не выполняются.
-Пара `(profile_id, sku_code)` уникальна по persisted trimmed значению с exact,
-case-sensitive semantics. Application/service duplicate pre-check при create и
-в resulting-state PATCH возвращает `DuplicateProductError` с HTTP 409, а
-существующий DB `UNIQUE (profile_id, sku_code)` остаётся authoritative
-race-condition backstop. Новый DB `CHECK` для trim не вводится.
+### LATER
 
-`weight_net` хранится в `kg`, является обязательным конечным числом строго
-больше `0`; верхняя граница в MVP не устанавливается. `required_it_grade`
-поддерживает nullable integer subset `1..18`, соответствующий IT1–IT18;
-остальные designation этим MVP-полем не представляются. `required_ra` хранится
-в `µm`; если значение задано, оно должно быть конечным числом строго больше
-`0`, без новой верхней границы. `NULL` в quality fields означает, что
-соответствующее требование не указано.
+Возможен отдельный execution/ERP bounded context после TOP-10. Ownership,
+lifecycle, transition из выигранной opportunity и даже имя сущности должны
+быть пересмотрены отдельно.
 
-Lifecycle зависит от использования Product записью `ProductionOrder`:
+`OrderType` не является vocabulary закупочной процедуры.
 
-- пока на Product не ссылается ни один ProductionOrder, PATCH может изменять
-  `product_type_code`, `material_item_id`, `sku_code`, `name`, `weight_net`,
-  `required_it_grade` и `required_ra` с проверкой resulting references,
-  normalization, ranges и uniqueness; `profile_id` не входит в update payload;
-- omitted-поле сохраняет текущее значение, пустой PATCH `{}` является no-op,
-  explicit `NULL` разрешён только для `required_it_grade` и `required_ra`;
-  остальные поля очистить нельзя;
-- как только на Product ссылается хотя бы один ProductionOrder, Product
-  становится immutable: PATCH любого переданного business field отклоняется
-  `ProductInUseError` с HTTP 409; пустой PATCH без переданных полей остаётся
-  no-op;
-- DELETE используемого Product отклоняется `ProductInUseError` с HTTP 409.
-  Связанные ProductionOrder не удаляются, а обязательный
-  `ProductionOrder.product_id` не обнуляется;
-- DELETE неиспользуемого Product разрешён.
+## 13. Processing limits и availability
 
-Отсутствующий Product и отсутствующие обязательные references отображаются в
-HTTP 404 по conventions проекта. Range/nullability и blank-string violations
-являются request validation errors с HTTP 422. Эти правила реализуются на
-application/API layer; существующая ORM-модель, миграция, indexes и seeds не
-изменяются.
+Отдельная обязательная `ProcessingEnvelope` entity не утверждается.
+Matching v1 строит read-only projection из подтверждённых Equipment fields.
+Отсутствующий max workpiece mass остаётся UNKNOWN.
 
-## 7. Качество, сертификаты и заказы
+Capacity и availability не являются prerequisite первого TOP-10. Пока нет
+сопоставимых facts, quantity и execution deadline дают UNKNOWN и explanations.
 
-### QualityCapability
+## 14. LATER concepts
 
-Единая агрегированная характеристика достижимого качества для профиля; связь с
-`EnterpriseProfile` имеет смысл 1:1.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор |
-| `profile_id` | Да | Производственный профиль |
-| `min_it_grade` | Нет | Наилучший достижимый квалитет |
-| `min_ra` | Нет | Минимальная достижимая шероховатость |
-| `measuring_tools` | Да | Наличие измерительного оборудования |
-| `cim_machine` | Да | Наличие координатно-измерительной машины |
-| `notes` | Нет | Особенности контроля качества |
-
-### EnterpriseCertificate
-
-Связь сертификата или разрешительного документа с предприятием. Историческое
-имя `Certificate` не обозначает отдельную параллельную сущность: тип документа
-хранится в `CertificateType`, а принадлежность и сроки — в
-`EnterpriseCertificate`.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор |
-| `profile_id` | Да | Производственный профиль |
-| `certificate_type_code` | Да | Код из `CertificateType` |
-| `issue_date` | Да | Дата выдачи |
-| `expiry_date` | Да | Дата окончания действия |
-
-Номер документа и произвольные примечания отсутствуют в принятой модели и не
-добавляются в неё этим документом.
-
-### ProductionOrder
-
-Производственный заказ предприятия на конкретное изделие.
-
-| Поле | Обязательное | Описание |
-|------|--------------|----------|
-| `id` | Да | Идентификатор заказа |
-| `profile_id` | Да | Производственный профиль |
-| `order_type_code` | Да | Код из `OrderType` |
-| `product_id` | Да | Изделие из `Product` |
-| `industry_code` | Да | Отрасль конечного применения или рыночный сегмент из `Industry` |
-| `order_number` | Да | Номер заказа в пределах профиля |
-| `quantity` | Да | Количество |
-| `deadline` | Да | Срок исполнения |
-
-`ProductionOrder.industry_code` не является ОКВЭД предприятия-исполнителя.
-Источник значения для входящего заказа и необходимость обязательности поля
-остаются в backlog.
-
-## 8. Предметные требования без утверждённой ORM-модели
-
-Перечисленные ниже потребности сохраняются, но отдельные таблицы, поля и связи
-для них пока не утверждены.
-
-### Технологии предприятия
-
-Предприятие должно иметь возможность описывать доступные производственные
-технологии. Текущий PNC-справочник — `TechnologyType`. Исторические названия
-`Technology` и `ProfileTechnology` не являются утверждёнными ORM-сущностями.
-Способ связи `TechnologyType` с `EnterpriseProfile`, `Equipment` или
-`ProductionFacility` пока не определён.
-
-### Общий перечень обрабатываемых материалов
-
-Система должна знать, какие материалы предприятие реально способно
-обрабатывать. Это отдельная capability производственного профиля, а не
-принадлежность глобальных master-data записей `Material` или `MaterialItem`.
-Материал конкретного изделия определяется через
-`Product → MaterialItem → Material`, но такая цепочка показывает только
-материалы заведённых продуктов и не заменяет общий перечень возможностей
-предприятия. Отдельной связи профиля с обрабатываемыми материалами пока нет.
-Историческое имя `ProfileMaterial` не является утверждённой ORM-сущностью;
-способ хранения требования остаётся в backlog и не блокирует CRUD глобального
-`Material`.
-
-### Геометрические и технологические ограничения
-
-Геометрические и технологические ограничения должны храниться на наиболее
-подходящем объекте — оборудовании, характеристике качества, изделии или
-площадке. Отдельная агрегирующая модель `ProcessingLimits` не утверждена;
-распределение дополнительных полей между существующими сущностями требует
-архитектурного решения.
-
-### Дополнительные требования контроля качества
-
-Утверждённая сущность `QualityCapability` хранит текущий согласованный набор
-показателей. Потребность описывать службу контроля качества и иные сведения,
-которых нет в `QualityCapability`, сохраняется как нерешённое требование.
-Отдельная модель `QualityControl` не утверждена.
-
-### Доступность производственных ресурсов
-
-Для поиска и matching могут потребоваться свободные мощности, возможность
-срочного заказа, загрузка и ожидаемые сроки. Отдельная модель
-`ProductionResources` и способ хранения этих показателей пока не определены.
-
-### Дополнительные возможности предприятия
-
-Могут потребоваться сведения о разработке конструкторской документации,
-прототипировании, монтаже, сервисе, упаковке, доставке, производственной
-кооперации, инженерном сопровождении и обратном проектировании. Отдельная
-Boolean-модель `AdditionalCapabilities` не утверждена; способ хранения этих
-характеристик пока не определён.
-
-Решения по перечисленным требованиям принимаются отдельно и фиксируются в
-`99_backlog.md`; этот раздел не является основанием для создания ORM-моделей,
-миграций или полей.
+- live source adapters;
+- AI/LLM normalization;
+- detailed capacity/availability;
+- routing, scheduling, shifts and personnel;
+- execution/ERP lifecycle;
+- CRM/contracts/invoices;
+- profitability and advanced analytics;
+- authentication/authorization/multi-tenancy;
+- persistent assessment history, если будет доказана необходимость.

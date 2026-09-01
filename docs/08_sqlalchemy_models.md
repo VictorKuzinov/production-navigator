@@ -1,789 +1,187 @@
 # Модели SQLAlchemy
 
-## Назначение документа
+## 1. Назначение и граница
 
-Документ фиксирует целевую ORM-модель проекта «Производственный навигатор». Все таблицы предметной области используют префикс `pnc_`; имена ограничений и индексов приведены к тому же соглашению. Наличие модели в целевой документации не заменяет проверку фактического кода и миграций перед внедрением.
+Документ разделяет **CURRENT ORM**, **TARGET MVP MODEL NEEDS** и
+**NOT YET DESIGNED / LATER**. Он не проектирует новую ORM, не меняет working
+models и не является migration specification.
 
-## Статус реализации и граница документа
+## 2. CURRENT ORM
 
-В целевую модель входят корпоративные справочники PNC, внешний иерархический классификатор `OKVED`, основные сущности и связи производственного профиля. `OKVED` не наследует `PNCBaseReference`.
+Рабочая ORM включает:
 
-Целевая документация и состояние реализации — разные вещи. Приведённый ниже
-код задаёт согласованную целевую ORM, но не доказывает, что каждая модель
-закоммичена, каждая миграция проверена и применена к конкретной базе данных.
+- reference models на базе `PNCBaseReference`;
+- `EnterpriseProfile`, `EnterpriseCertificate`, `EnterpriseIndustry`,
+  `EnterpriseOKVED`, `QualityCapability`;
+- `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`,
+  `Transport`;
+- `Material`, `MaterialItem`, `Product`;
+- `ProductionOrder`;
+- отдельную иерархическую model `OKVED`.
 
-Снимок рабочего дерева на 2026-08-14:
+Наличие model/migration не означает, что конкретная database upgraded или что
+все vertical slices одинаково реализованы.
 
-| Область | Целевая документация | Наблюдаемое состояние backend | Интерпретация |
-|---------|-----------------------|-------------------------------|--------------|
-| Корпоративные PNC-справочники | Описаны | ORM-модели и соответствующие миграции присутствуют | Наличие файлов не заменяет проверку состояния БД |
-| Основные сущности производственного профиля | Описаны | ORM-модели и миграции присутствуют | Готовность конкретного развёртывания этим документом не подтверждается |
-| `OKVED` и `EnterpriseOKVED` | Входят в целевую модель | Модели и кандидатная миграция присутствуют в незакоммиченном рабочем дереве | Изменения нельзя считать завершёнными только по наличию файлов |
+### 2.1 CURRENT profile facts relevant to matching
 
-Основные сущности целевой модели: `EnterpriseProfile`, `ProductionFacility`, `Equipment`, `Warehouse`, `LiftingEquipment`, `Transport`, `Material`, `MaterialItem`, `Product`, `ProductionOrder`, `EnterpriseCertificate`, `EnterpriseIndustry`, `EnterpriseOKVED` и `QualityCapability`.
+| Model | Available fields/facts | Matching limitation |
+|-------|------------------------|---------------------|
+| `EnterpriseProfile` | company identity, `region_code`, relationships | Не доказывает capability сам по себе |
+| `Product` | ProductType, MaterialItem, name, weight, required IT/Ra | Experience signal; нет OKPD2 mapping |
+| `Equipment` | type, model, CNC, axes, quantity, diameter, work zones | Нет max mass/capacity/availability; CNC default needs confirmation |
+| `QualityCapability` | best IT/Ra, measuring tools, CMM, notes | Boolean defaults не равны confirmed absence |
+| `EnterpriseCertificate` | type, issue/expiry dates | Нужны completeness, remediability и required date |
+| `Material` / `MaterialItem` | Shared material vocabulary and catalog variants | Нет profile material capability link |
+| `TechnologyType` | Reference vocabulary | Нет profile technology capability link |
+| `Transport` / `Region` | Logistics context | Только soft/optional matching |
 
-## Целевая ORM-модель
+### 2.2 CURRENT ProductionOrder
 
-Код ниже отражает целевые таблицы, ограничения, индексы и двусторонние связи. Для обычных типов используются современные аннотации `T | None` и `list[T]`. Для ссылок на классы, объявленные ниже, вся аннотация помещается в строку; это не допускает вычисления выражения вида `"ClassName" | None` во время импорта.
+`ProductionOrder` ORM существует и содержит owned relationship с
+`EnterpriseProfile`, обязательную ссылку на `Product`, `OrderType`, Industry,
+number, quantity и deadline.
 
-```python
-from datetime import date
+CURRENT relationships:
 
-from sqlalchemy import (
-    Boolean,
-    Date,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-    text,
-)
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+- `EnterpriseProfile.orders`;
+- `Product.orders`;
+- corresponding reference back-populates.
 
+Product service/repository lifecycle использует наличие orders для in-use
+guard. Это CURRENT implementation fact.
 
-class Base(DeclarativeBase):
-    pass
+В TARGET MVP `ProductionOrder` frozen и не используется как external
+procurement, match assessment или TOP-10 result. Stage 2/3 и Builder не
+продолжаются; model/migration не удаляются этим candidate.
 
+`OrderType` не является procurement procedure vocabulary.
 
-class PNCBaseReference:
-    __abstract__ = True
+## 3. TARGET MVP logical model needs
 
-    code: Mapped[str] = mapped_column(String(50), primary_key=True)
-    name_ru: Mapped[str] = mapped_column(String(255), nullable=False)
-    ics_section: Mapped[str | None] = mapped_column(String(50))
-    ref_system: Mapped[str] = mapped_column(String(100), nullable=False)
-    ref_code: Mapped[str] = mapped_column(String(50), nullable=False)
-    description: Mapped[str | None] = mapped_column(Text)
+Следующие names обозначают concepts, а не утверждённые SQLAlchemy classes:
 
+### 3.1 ProcurementOpportunity
 
-class OKVED(Base):
-    """Локальное иерархическое представление внешнего классификатора ОКВЭД."""
+Нужен независимый external market object с:
 
-    __tablename__ = "pnc_okved"
-    __table_args__ = (
-        Index("ix_pnc_okved_parent_code", "parent_code"),
-    )
+- provenance;
+- identity `(canonical_source, exact_external_id)`;
+- title/status и optional display fields;
+- structured requirements;
+- tri-state UNKNOWN semantics;
+- idempotent import behavior.
 
-    code: Mapped[str] = mapped_column(String(10), primary_key=True)
-    name_ru: Mapped[str] = mapped_column(String(500), nullable=False)
-    parent_code: Mapped[str | None] = mapped_column(
-        ForeignKey("pnc_okved.code")
-    )
-    level: Mapped[int] = mapped_column(Integer, nullable=False)
+Не утверждены storage decomposition, columns, indexes beyond identity need,
+relationships и CRUD.
 
-    children: Mapped[list["OKVED"]] = relationship(back_populates="parent")
-    parent: Mapped["OKVED | None"] = relationship(
-        back_populates="children",
-        remote_side=[code],
-    )
-    enterprises: Mapped[list["EnterpriseOKVED"]] = relationship(
-        back_populates="okved"
-    )
+### 3.2 ProfileTechnologyCapability
 
+Нужна logical profile ↔ `TechnologyType` связь со state
+`SUPPORTED/UNSUPPORTED/UNKNOWN` и optional evidence.
 
-class EquipmentType(Base, PNCBaseReference):
-    __tablename__ = "pnc_equipment_type"
+### 3.3 ProfileMaterialCapability
 
-    equipments: Mapped[list["Equipment"]] = relationship(back_populates="type_ref")
+Нужна logical profile ↔ `MaterialGroup`/optional `Material` связь со state
+`SUPPORTED/UNSUPPORTED/UNKNOWN`.
 
+Material/MaterialItem остаются shared master data и не получают profile
+ownership.
 
-class TechnologyType(Base, PNCBaseReference):
-    __tablename__ = "pnc_technology_type"
+### 3.4 ProfileSectionCompleteness
 
+Нужны logical facts:
 
-class MaterialGroup(Base, PNCBaseReference):
-    __tablename__ = "pnc_material_group"
+- section/scope/snapshot;
+- `CONFIRMED_COMPLETE/PARTIAL/UNKNOWN`;
+- explicit human confirmer/time;
+- invalidation to PARTIAL after changes.
 
-    materials: Mapped[list["Material"]] = relationship(back_populates="group_ref")
+Persistence design и confirmation API не утверждены.
 
+### 3.5 MatchAssessment / CriterionResult / TOP-10
 
-class MaterialForm(Base, PNCBaseReference):
-    __tablename__ = "pnc_material_form"
+Эти logical application results необходимы, но ORM persistence не утверждена.
+Compute-on-demand является допустимым первым вариантом. Нельзя проектировать
+таблицы assessment как скрытый internal order lifecycle.
 
-    material_items: Mapped[list["MaterialItem"]] = relationship(
-        back_populates="form_ref"
-    )
+## 4. Read-only matching projection
 
+TARGET Matching v1 может читать существующие ORM facts через отдельную
+application projection:
 
-class ProductType(Base, PNCBaseReference):
-    __tablename__ = "pnc_product_type"
-
-    products: Mapped[list["Product"]] = relationship(back_populates="type_ref")
-
-
-class CraneType(Base, PNCBaseReference):
-    __tablename__ = "pnc_crane_type"
-
-    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
-        back_populates="type_ref"
-    )
-
-
-class TransportType(Base, PNCBaseReference):
-    __tablename__ = "pnc_transport_type"
-
-    transports: Mapped[list["Transport"]] = relationship(back_populates="type_ref")
-
-
-class TransportScope(Base, PNCBaseReference):
-    __tablename__ = "pnc_transport_scope"
-
-    transports: Mapped[list["Transport"]] = relationship(back_populates="scope_ref")
-
-
-class TransportOwnershipType(Base, PNCBaseReference):
-    __tablename__ = "pnc_transport_ownership_type"
-
-    transports: Mapped[list["Transport"]] = relationship(
-        back_populates="ownership_ref"
-    )
-
-
-class WarehouseType(Base, PNCBaseReference):
-    __tablename__ = "pnc_warehouse_type"
-
-    warehouses: Mapped[list["Warehouse"]] = relationship(back_populates="type_ref")
-
-
-class CertificateType(Base, PNCBaseReference):
-    __tablename__ = "pnc_certificate_type"
-
-    certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
-        back_populates="type_ref"
-    )
-
-
-class Industry(Base, PNCBaseReference):
-    __tablename__ = "pnc_industry"
-
-    enterprise_links: Mapped[list["EnterpriseIndustry"]] = relationship(
-        back_populates="industry_ref"
-    )
-    orders: Mapped[list["ProductionOrder"]] = relationship(
-        back_populates="industry_ref"
-    )
-
-
-class OrderType(Base, PNCBaseReference):
-    __tablename__ = "pnc_order_type"
-
-    orders: Mapped[list["ProductionOrder"]] = relationship(back_populates="type_ref")
-
-
-class CompanySize(Base, PNCBaseReference):
-    __tablename__ = "pnc_company_size"
-
-    profiles: Mapped[list["EnterpriseProfile"]] = relationship(
-        back_populates="size_ref"
-    )
-
-
-class Region(Base, PNCBaseReference):
-    __tablename__ = "pnc_region"
-
-    profiles: Mapped[list["EnterpriseProfile"]] = relationship(
-        back_populates="region_ref"
-    )
-
-
-class EnterpriseProfile(Base):
-    __tablename__ = "pnc_enterprise_profile"
-    __table_args__ = (
-        UniqueConstraint("inn", name="uq_pnc_enterprise_profile_inn"),
-        UniqueConstraint("ogrn", name="uq_pnc_enterprise_profile_ogrn"),
-        Index("ix_pnc_enterprise_profile_region_code", "region_code"),
-        Index(
-            "ix_pnc_enterprise_profile_company_size_code",
-            "company_size_code",
-        ),
-        Index("ix_pnc_enterprise_profile_company_name", "company_name"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    company_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    inn: Mapped[str | None] = mapped_column(String(12))
-    ogrn: Mapped[str | None] = mapped_column(String(15))
-    website: Mapped[str | None] = mapped_column(String(255))
-    employees_count: Mapped[int | None] = mapped_column(Integer)
-    company_size_code: Mapped[str | None] = mapped_column(
-        ForeignKey("pnc_company_size.code")
-    )
-    region_code: Mapped[str | None] = mapped_column(ForeignKey("pnc_region.code"))
-
-    size_ref: Mapped["CompanySize | None"] = relationship(back_populates="profiles")
-    region_ref: Mapped["Region | None"] = relationship(back_populates="profiles")
-    facilities: Mapped[list["ProductionFacility"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    warehouses: Mapped[list["Warehouse"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    transports: Mapped[list["Transport"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    equipments: Mapped[list["Equipment"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    products: Mapped[list["Product"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    certificates: Mapped[list["EnterpriseCertificate"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    industries: Mapped[list["EnterpriseIndustry"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    okveds: Mapped[list["EnterpriseOKVED"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    orders: Mapped[list["ProductionOrder"]] = relationship(
-        back_populates="profile", cascade="all, delete-orphan"
-    )
-    quality_capability: Mapped["QualityCapability | None"] = relationship(
-        back_populates="profile",
-        cascade="all, delete-orphan",
-        single_parent=True,
-    )
-
-
-class ProductionFacility(Base):
-    __tablename__ = "pnc_production_facility"
-    __table_args__ = (
-        UniqueConstraint(
-            "profile_id",
-            "facility_name",
-            name="uq_pnc_production_facility_profile_name",
-        ),
-        Index("ix_pnc_production_facility_profile_id", "profile_id"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    facility_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    total_area: Mapped[float] = mapped_column(Float, nullable=False)
-    available_area: Mapped[float] = mapped_column(Float, nullable=False)
-    power_capacity: Mapped[float | None] = mapped_column(Float)
-    gas_supply: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    compressed_air: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
-    water_supply: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    steam_supply: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="facilities")
-    equipments: Mapped[list["Equipment"]] = relationship(back_populates="facility")
-    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
-        back_populates="facility"
-    )
-
-
-class Warehouse(Base):
-    __tablename__ = "pnc_warehouse"
-    __table_args__ = (
-        Index(
-            "ix_pnc_warehouse_profile_type",
-            "profile_id",
-            "warehouse_type_code",
-        ),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    warehouse_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_warehouse_type.code"), nullable=False
-    )
-    total_capacity_cube: Mapped[float] = mapped_column(Float, nullable=False)
-    max_load_sqm: Mapped[float | None] = mapped_column(Float)
-    temperature_control: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="warehouses")
-    type_ref: Mapped["WarehouseType"] = relationship(back_populates="warehouses")
-    lifting_equipments: Mapped[list["LiftingEquipment"]] = relationship(
-        back_populates="warehouse"
-    )
-
-
-class LiftingEquipment(Base):
-    __tablename__ = "pnc_lifting_equipment"
-    __table_args__ = (
-        Index(
-            "ix_pnc_lifting_equipment_profile_type",
-            "profile_id",
-            "crane_type_code",
-        ),
-        Index("ix_pnc_lifting_equipment_facility_id", "facility_id"),
-        Index("ix_pnc_lifting_equipment_warehouse_id", "warehouse_id"),
-        Index("ix_pnc_lifting_equipment_load_capacity", "load_capacity_tons"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    crane_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_crane_type.code"), nullable=False
-    )
-    facility_id: Mapped[int | None] = mapped_column(
-        ForeignKey("pnc_production_facility.id"), nullable=True
-    )
-    warehouse_id: Mapped[int | None] = mapped_column(
-        ForeignKey("pnc_warehouse.id"), nullable=True
-    )
-    load_capacity_tons: Mapped[float] = mapped_column(Float, nullable=False)
-    max_lift_height: Mapped[float | None] = mapped_column(Float)
-    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(
-        back_populates="lifting_equipments"
-    )
-    type_ref: Mapped["CraneType"] = relationship(
-        back_populates="lifting_equipments"
-    )
-    facility: Mapped["ProductionFacility | None"] = relationship(
-        back_populates="lifting_equipments"
-    )
-    warehouse: Mapped["Warehouse | None"] = relationship(
-        back_populates="lifting_equipments"
-    )
-
-
-class Transport(Base):
-    __tablename__ = "pnc_transport"
-    __table_args__ = (
-        Index(
-            "ix_pnc_transport_profile_type", "profile_id", "transport_type_code"
-        ),
-        Index(
-            "ix_pnc_transport_profile_scope", "profile_id", "transport_scope_code"
-        ),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    transport_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_transport_type.code"), nullable=False
-    )
-    transport_scope_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_transport_scope.code"), nullable=False
-    )
-    transport_ownership_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_transport_ownership_type.code"), nullable=False
-    )
-    payload_tons: Mapped[float] = mapped_column(Float, nullable=False)
-    body_volume_cube: Mapped[float | None] = mapped_column(Float)
-    has_refrigeration: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="transports")
-    type_ref: Mapped["TransportType"] = relationship(back_populates="transports")
-    scope_ref: Mapped["TransportScope"] = relationship(back_populates="transports")
-    ownership_ref: Mapped["TransportOwnershipType"] = relationship(
-        back_populates="transports"
-    )
-
-
-class Equipment(Base):
-    __tablename__ = "pnc_equipment"
-    __table_args__ = (
-        Index(
-            "ix_pnc_equipment_profile_type", "profile_id", "equipment_type_code"
-        ),
-        Index(
-            "ix_pnc_equipment_facility_type", "facility_id", "equipment_type_code"
-        ),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    facility_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_production_facility.id"), nullable=False
-    )
-    equipment_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_equipment_type.code"), nullable=False
-    )
-    model_name: Mapped[str | None] = mapped_column(String(255))
-    cnc: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    axes: Mapped[int | None] = mapped_column(Integer)
-    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-    max_diameter: Mapped[float | None] = mapped_column(Float)
-    working_zone_x: Mapped[float | None] = mapped_column(Float)
-    working_zone_y: Mapped[float | None] = mapped_column(Float)
-    working_zone_z: Mapped[float | None] = mapped_column(Float)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="equipments")
-    facility: Mapped["ProductionFacility"] = relationship(back_populates="equipments")
-    type_ref: Mapped["EquipmentType"] = relationship(back_populates="equipments")
-
-
-class QualityCapability(Base):
-    __tablename__ = "pnc_quality_capability"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"),
-        nullable=False,
-        unique=True,
-    )
-    min_it_grade: Mapped[int | None] = mapped_column(Integer)
-    min_ra: Mapped[float | None] = mapped_column(Float)
-    measuring_tools: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
-    cim_machine: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    notes: Mapped[str | None] = mapped_column(Text)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(
-        back_populates="quality_capability"
-    )
-
-
-class EnterpriseCertificate(Base):
-    __tablename__ = "pnc_enterprise_certificate"
-    __table_args__ = (
-        UniqueConstraint(
-            "profile_id",
-            "certificate_type_code",
-            "issue_date",
-            "expiry_date",
-            name="uq_pnc_certificate_profile_type_dates",
-        ),
-        Index(
-            "ix_pnc_certificate_profile_type_expiry",
-            "profile_id",
-            "certificate_type_code",
-            "expiry_date",
-        ),
-        Index("ix_pnc_certificate_expiry_date", "expiry_date"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    certificate_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_certificate_type.code"), nullable=False
-    )
-    issue_date: Mapped[date] = mapped_column(Date, nullable=False)
-    expiry_date: Mapped[date] = mapped_column(Date, nullable=False)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="certificates")
-    type_ref: Mapped["CertificateType"] = relationship(
-        back_populates="certificates"
-    )
-
-
-class EnterpriseIndustry(Base):
-    __tablename__ = "pnc_enterprise_industry"
-    __table_args__ = (
-        UniqueConstraint(
-            "profile_id",
-            "industry_code",
-            name="uq_pnc_enterprise_industry_profile_industry",
-        ),
-        Index(
-            "ix_pnc_enterprise_industry_primary",
-            "profile_id",
-            unique=True,
-            postgresql_where=text("is_primary IS TRUE"),
-        ),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    industry_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_industry.code"), nullable=False
-    )
-    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="industries")
-    industry_ref: Mapped["Industry"] = relationship(
-        back_populates="enterprise_links"
-    )
-
-
-class EnterpriseOKVED(Base):
-    __tablename__ = "pnc_enterprise_okved"
-    __table_args__ = (
-        UniqueConstraint(
-            "profile_id",
-            "okved_code",
-            name="uq_enterprise_okved",
-        ),
-        Index("ix_pnc_enterprise_okved_code", "okved_code"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    okved_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_okved.code"), nullable=False
-    )
-    is_primary: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="okveds")
-    okved: Mapped["OKVED"] = relationship(back_populates="enterprises")
-
-
-class Material(Base):
-    __tablename__ = "pnc_material"
-    __table_args__ = (
-        UniqueConstraint(
-            "group_code", "grade_name", name="uq_pnc_material_group_grade"
-        ),
-        Index("ix_pnc_material_group_code", "group_code"),
-        Index("ix_pnc_material_grade_name", "grade_name"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    group_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_material_group.code"), nullable=False
-    )
-    grade_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    density: Mapped[float | None] = mapped_column(Float)
-
-    group_ref: Mapped["MaterialGroup"] = relationship(back_populates="materials")
-    items: Mapped[list["MaterialItem"]] = relationship(
-        back_populates="material", cascade="all, delete-orphan"
-    )
-
-
-class MaterialItem(Base):
-    __tablename__ = "pnc_material_item"
-    __table_args__ = (
-        UniqueConstraint(
-            "material_id",
-            "material_form_code",
-            "dimension_1",
-            "unit_of_measure",
-            name="uq_pnc_material_item_form_dimension_unit",
-            postgresql_nulls_not_distinct=True,
-        ),
-        Index(
-            "ix_pnc_material_item_material_form",
-            "material_id",
-            "material_form_code",
-        ),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    material_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_material.id"), nullable=False
-    )
-    material_form_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_material_form.code"), nullable=False
-    )
-    dimension_1: Mapped[float | None] = mapped_column(Float)
-    unit_of_measure: Mapped[str] = mapped_column(String(20), nullable=False)
-
-    material: Mapped["Material"] = relationship(back_populates="items")
-    form_ref: Mapped["MaterialForm"] = relationship(
-        back_populates="material_items"
-    )
-    products: Mapped[list["Product"]] = relationship(
-        back_populates="material_item"
-    )
-
-
-class Product(Base):
-    __tablename__ = "pnc_product"
-    __table_args__ = (
-        UniqueConstraint(
-            "profile_id", "sku_code", name="uq_pnc_product_profile_sku"
-        ),
-        Index("ix_pnc_product_profile_type", "profile_id", "product_type_code"),
-        Index("ix_pnc_product_material_item_id", "material_item_id"),
-        Index("ix_pnc_product_name", "name"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    product_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_product_type.code"), nullable=False
-    )
-    material_item_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_material_item.id"), nullable=False
-    )
-    sku_code: Mapped[str] = mapped_column(String(100), nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    weight_net: Mapped[float] = mapped_column(Float, nullable=False)
-    required_it_grade: Mapped[int | None] = mapped_column(Integer)
-    required_ra: Mapped[float | None] = mapped_column(Float)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="products")
-    type_ref: Mapped["ProductType"] = relationship(back_populates="products")
-    material_item: Mapped["MaterialItem"] = relationship(back_populates="products")
-    orders: Mapped[list["ProductionOrder"]] = relationship(back_populates="product")
-
-
-class ProductionOrder(Base):
-    __tablename__ = "pnc_production_order"
-    __table_args__ = (
-        UniqueConstraint(
-            "profile_id", "order_number", name="uq_pnc_order_profile_number"
-        ),
-        Index("ix_pnc_order_profile_deadline", "profile_id", "deadline"),
-        Index("ix_pnc_order_type_deadline", "order_type_code", "deadline"),
-        Index("ix_pnc_order_industry_deadline", "industry_code", "deadline"),
-        Index("ix_pnc_order_product_id", "product_id"),
-        Index("ix_pnc_order_deadline", "deadline"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    profile_id: Mapped[int] = mapped_column(
-        ForeignKey("pnc_enterprise_profile.id"), nullable=False
-    )
-    order_type_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_order_type.code"), nullable=False
-    )
-    product_id: Mapped[int] = mapped_column(ForeignKey("pnc_product.id"), nullable=False)
-    industry_code: Mapped[str] = mapped_column(
-        ForeignKey("pnc_industry.code"), nullable=False
-    )
-    order_number: Mapped[str] = mapped_column(String(100), nullable=False)
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    deadline: Mapped[date] = mapped_column(Date, nullable=False)
-
-    profile: Mapped["EnterpriseProfile"] = relationship(back_populates="orders")
-    type_ref: Mapped["OrderType"] = relationship(back_populates="orders")
-    product: Mapped["Product"] = relationship(back_populates="orders")
-    industry_ref: Mapped["Industry"] = relationship(back_populates="orders")
+```text
+EnterpriseProfile + related current entities
+→ normalized confirmed matching input
 ```
 
-## Примечания к ограничениям, индексам и связям
+Projection:
 
-- `LiftingEquipment.facility_id` и `LiftingEquipment.warehouse_id` — независимые
-  nullable-ссылки. Допустимы все четыре состояния: указана только площадка,
-  указан только склад, указаны оба объекта или обе ссылки равны `NULL`.
-  DB-схема не содержит XOR, `CHECK` «указана хотя бы одна ссылка» или запрета
-  одновременной привязки и не должна вводить такие ограничения.
-- Если `facility_id` или `warehouse_id` указан, application/service layer
-  проверяет существование соответствующего объекта и совпадение его `profile_id`
-  с `LiftingEquipment.profile_id`. Внешний ключ дополнительно гарантирует
-  ссылочную целостность на уровне БД. Эти проверки не выражаются DB `CHECK`
-  constraint.
-- `Transport` в текущем MVP описывает автомобильное транспортное средство или
-  однородную группу автомобильных транспортных средств. `payload_tons` и
-  `body_volume_cube` относятся к одной единице, `quantity` — к числу однотипных
-  единиц. `payload_tons > 0`, nullable `body_volume_cube > 0` при указанном
-  значении и `quantity >= 1` проверяются на application/API layer; DB `CHECK`
-  constraints для этих диапазонов не вводятся.
-- `Transport.has_refrigeration` является nullable-трёхсостоянием: `True` —
-  наличие подтверждено, `False` — отсутствие подтверждено, `NULL` — значение
-  неизвестно или не предоставлено. Default — `None`; type-specific
-  restrictions для этого поля отсутствуют.
-- Все сочетания `TransportType`, `TransportScope` и `TransportOwnershipType`
-  допустимы. `Transport` не имеет `UNIQUE` constraint, а одинаковые строки не
-  объединяются автоматически.
-- `RAILWAY_SPUR` исключён из целевого `TransportType`: железнодорожный транспорт
-  и инфраструктура не входят в границу `Transport` текущего MVP. Текущие
-  рабочие seed/reference data изменяются только на этапе реализации.
-- Nullable tri-state `Transport.has_refrigeration` уже реализован в рабочей ORM
-  как `Mapped[bool | None]` с `nullable=True`. Alembic migration
-  `27a920326238_make_transport_refrigeration_nullable.py`, переводящая колонку
-  из `NOT NULL` в nullable, уже создана; её применение к конкретной базе данных
-  проверяется отдельно.
-- Все таблицы и вручную именованные индексы/ограничения используют префикс `pnc_`; опечаток вида `ix_pmc_...` и внешних ключей на `pbc_...` в документе нет.
-- `Warehouse.__table_args__` — одноэлементный кортеж. Запятая после `Index(...)` обязательна; приведённый вариант синтаксически корректен.
-- `EnterpriseIndustry` содержит только PostgreSQL-вариант частичного уникального индекса `ix_pnc_enterprise_industry_primary` с условием `is_primary IS TRUE`. Он гарантирует не более одной основной отрасли на профиль. `sqlite_where` намеренно отсутствует.
-- Пара `(profile_id, industry_code)` в `EnterpriseIndustry` защищена ограничением `uq_pnc_enterprise_industry_profile_industry`.
-- `EnterpriseIndustry.is_primary` означает основной отраслевой рынок предприятия в терминах PNC. `EnterpriseOKVED.is_primary` означает основной зарегистрированный вид экономической деятельности. Эти признаки имеют разную семантику и не синхронизируются автоматически.
-- Пара `(profile_id, okved_code)` в `EnterpriseOKVED` защищена ограничением `uq_enterprise_okved`. Текущая целевая схема не содержит частичного уникального индекса, ограничивающего профиль одним `EnterpriseOKVED.is_primary`; способ обеспечения этого инварианта требует отдельного решения.
-- `OKVED` имеет собственную иерархическую структуру `code`, `name_ru`, `parent_code`, `level` и не наследует `PNCBaseReference`. Префикс таблицы `pnc_` является соглашением об именовании таблиц, а не признаком принадлежности к корпоративному классификатору PNC.
-- ORM-модели не содержат провайдерских сущностей или полей `api-fns.ru`. Внешний JSON должен быть нормализован до обращения к ORM, поэтому замена поставщика регистрационных сведений не требует изменения `EnterpriseProfile`, `EnterpriseOKVED` или `OKVED`.
-- Целевой импорт по ИНН может сохранять подтверждённые реквизиты `EnterpriseProfile` и связи `EnterpriseOKVED`, но соответствующие нормализованная схема, сервис импорта и API endpoint в текущей реализации отсутствуют. Источник и время импорта текущей ORM-схемой также не фиксируются.
-- Автоматическое сопоставление `OKVED ↔ Industry` отсутствует. Основной ОКВЭД не назначает основную отрасль PNC.
-- `ProductionOrder.industry_code` описывает отрасль конечного применения или рыночный сегмент заказа, а не ОКВЭД предприятия-исполнителя. В целевой модели поле пока остаётся обязательным, однако источник его значения для входящего заказа не определён и вынесен в backlog вместе с проверкой обязательности.
-- Для связи `EnterpriseProfile` ↔ `QualityCapability` используется отношение 1:1: `profile_id` имеет `unique=True`, а родительская связь — `cascade="all, delete-orphan"` и `single_parent=True`. Отдельный дублирующий `Index` не нужен.
-- `Region.profiles`, `CompanySize.profiles`, `CertificateType.certificates`, `Industry.enterprise_links` и остальные обратные стороны `back_populates` присутствуют в целевой схеме; временно закомментированных отношений в приведённом целевом коде нет.
-- ИНН и ОГРН хранятся как строки, поскольку это идентификаторы, а не числа для вычислений.
-- `MaterialItem` — глобальная shared/master-data запись без `profile_id`; она
-  не является stock, quantity, batch, procurement или pricing entity и может
-  использоваться Products разных профилей.
-- `MaterialItem.dimension_1` — nullable form-specific primary linear dimension
-  в canonical unit `mm`. Если значение задано, application/API layer требует
-  конечное число строго больше `0`; для `LIQUID_CHEMICAL` допустим только
-  `NULL`. Полная геометрия и второй размер в MVP не моделируются. Новый DB
-  `CHECK` для range/form rules не вводится.
-- `MaterialItem.unit_of_measure` означает canonical base quantity unit catalog
-  item, а не единицу `dimension_1`. Application/API layer принимает только
-  точные codes `kg`, `m`, `m2`, `m3`, `l`, `pcs` без free text, silent trim,
-  case folding, automatic conversion и packaging units. Новая reference table,
-  seed и матрица `MaterialForm × unit_of_measure` не вводятся.
-- Уникальность материала определяется парой `(group_code, grade_name)`.
-  Логическая identity варианта материала — `(material_id,
-  material_form_code, dimension_1, unit_of_measure)`. Constraint
-  `uq_pnc_material_item_form_dimension_unit` использует PostgreSQL
-  `NULLS NOT DISTINCT`, поэтому NULL-размер не позволяет создать второй
-  логически одинаковый item. Application duplicate pre-check сохраняется для
-  доменной ошибки, а DB constraint является authoritative backstop.
-- Для перехода от фактического обычного `UNIQUE` к целевому
-  `UNIQUE NULLS NOT DISTINCT` требуется отдельная migration под PostgreSQL 16.
-  До пересоздания constraint выполняется data preflight NULL-дублей. Migration
-  не удаляет и не объединяет их молча; ссылки Products на duplicate IDs
-  разрешаются только явным data mapping.
-- Пока `MaterialItem` не используется `Product`, service layer разрешает PATCH
-  четырёх identity fields и DELETE при соблюдении итоговых references,
-  validation и uniqueness. Explicit `NULL` допустим только для
-  `dimension_1`; omitted сохраняет значение, пустой PATCH является no-op.
-- `MaterialItem`, используемый хотя бы одним `Product`, immutable: PATCH любого
-  identity field и DELETE отклоняются service layer. Для другого физического
-  варианта создаётся новый item и Product явно переводится на новый FK.
-  Relationship `MaterialItem.products` не имеет destructive cascade, а
-  `Product.material_item_id` остаётся `NOT NULL` FK без `ON DELETE CASCADE` и
-  `ON DELETE SET NULL`.
-- `Product` — profile-owned record: `profile_id` задаёт ownership и не меняется
-  через Product PATCH. `product_type_code` и `material_item_id` остаются
-  обязательными FK; глобальный MaterialItem не требует profile ownership
-  match. Пара `(profile_id, sku_code)` защищена существующим exact,
-  case-sensitive constraint `uq_pnc_product_profile_sku`.
-- На application/API layer перед validation и persistence удаляются leading и
-  trailing whitespace из `Product.sku_code` и `Product.name`; whitespace-only
-  значения запрещены, регистр сохраняется. Duplicate pre-check create/PATCH
-  использует resulting trimmed SKU, а DB constraint остаётся authoritative
-  backstop. DB `CHECK` для trim и case normalization не вводится.
-- `Product.weight_net` хранится в `kg` и должен быть конечным числом строго
-  больше `0`; `required_it_grade` поддерживает nullable integer subset
-  IT1–IT18 (`1..18`); `required_ra` хранится в `µm` и при заданном значении
-  должна быть конечным числом строго больше `0`. Range/unit rules остаются на
-  application/API layer; ORM columns и migration не меняются.
-- Пока Product не используется `ProductionOrder`, service layer разрешает
-  PATCH всех business fields кроме `profile_id` и DELETE при соблюдении
-  resulting validation. Omitted сохраняет значение, explicit `NULL` допустим
-  только для `required_it_grade` и `required_ra`, пустой PATCH является no-op.
-  Product, используемый хотя бы одним ProductionOrder, immutable и не
-  удаляется: PATCH переданного business field и DELETE отклоняются
-  `ProductInUseError` с HTTP 409. Relationship `Product.orders` не имеет
-  destructive cascade, а `ProductionOrder.product_id` остаётся `NOT NULL` FK
-  без `ON DELETE CASCADE` и `ON DELETE SET NULL`.
-- Утверждённый Product contract не требует изменения ORM, migration, indexes,
-  seeds или существующих ProductType references; новый DB/data этап перед
-  vertical slice не нужен.
-- Повторно выданные сертификаты одного типа допустимы, но полный дубль по профилю, типу, дате выдачи и дате окончания запрещён.
-- Наличие миграций в рабочем дереве не означает, что они проверены, закоммичены или применены к PostgreSQL. Состояние цепочки, `upgrade()`, `downgrade()` и фактической базы проверяется отдельно перед внедрением; этот документ не фиксирует все миграции как завершённые.
+- не создаёт отдельную `ProcessingEnvelope` entity;
+- использует только relevant Equipment work zones/diameter/axes/CNC;
+- не агрегирует несопоставимое оборудование;
+- не выводит production capacity из `Equipment.quantity`;
+- сохраняет отсутствующие limits как UNKNOWN;
+- применяет section completeness и confirmation поверх technical defaults.
 
-## Экспорт моделей
+## 5. CURRENT ORM that remains optional to Matching v1
 
-`app.models` должен экспортировать каждую реализованную модель ровно один раз.
+`ProductionFacility`, `Warehouse`, `LiftingEquipment`, `Transport`,
+CompanySize, Industry/EnterpriseIndustry и OKVED/EnterpriseOKVED остаются
+реальными models. Их отсутствие в core criteria не означает удаление.
+
+Они подключаются только к approved rule с соответствующим opportunity
+requirement. В first narrow fixture они не являются blockers.
+
+## 6. NOT YET DESIGNED
+
+Без отдельного ORM design stage не утверждать:
+
+- окончательные class and table names;
+- полный column set и types;
+- relationship ownership/back-populates/cascades;
+- delete/update lifecycle;
+- unique/index/check constraints beyond logical identity need;
+- JSON vs normalized requirement models;
+- import batch/revision models;
+- MatchAssessment persistence;
+- API schemas, CRUD, routes and response contracts;
+- concurrency and locking;
+- migrations, seeds and backfill.
+
+Target concepts не должны появляться в code snippets как уже существующие
+`Mapped` classes до реализации.
+
+## 7. Blocking model gaps
+
+До first meaningful TOP-10 необходимо спроектировать и реализовать только:
+
+1. profile technology capability;
+2. profile material capability;
+3. section completeness mechanism.
+
+Opportunity persistence/ingestion и matching implementation, разумеется,
+нужны для end-to-end flow, но среди **profile** gaps blocking list ограничен
+этими тремя.
+
+Не блокируют profile readiness:
+
+- Product ↔ OKPD2;
+- missing equipment processing limits/max workpiece mass;
+- capacity/availability;
+- execution feasibility;
+- region mapping;
+- unconfirmed certificate absence;
+- technical boolean defaults.
+
+## 8. LATER
+
+- live-source persistence metadata;
+- assessment history;
+- capacity and availability models;
+- execution/ERP redesign ProductionOrder;
+- scheduling/routes/shifts/personnel;
+- CRM/contracts/invoices;
+- authentication/authorization/multi-tenancy.
+
+Ни один LATER model не должен добавляться в следующий Builder scope без нового
+decision/design stage.

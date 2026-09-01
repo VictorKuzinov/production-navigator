@@ -1,429 +1,381 @@
-# Бизнес-правила Системы поддержки принятия решений (PNC-BR)
+# Бизнес-правила Production Navigator
 
-## Общие правила классификации результатов
+## 1. Статус и приоритет документа
 
-### BR_SYS_001
+Это главный нормативный candidate-документ Matching v1. Он разделяет:
 
-- Название: Критическое ограничение
-- Приоритет (Severity): ERROR
-- Категория: Matching Result Classification
-- Назначение: Исключение заказа при подтвержденном несовместимом требовании.
-- Логика: Результат применяется только тогда, когда известное обязательное требование заказа превышает подтвержденную возможность предприятия или отсутствует обязательный разрешительный документ.
-- Сообщение: «Заказ не соответствует текущим подтвержденным возможностям предприятия».
-- Обоснование: Критическое ограничение должно опираться на проверяемые данные, а не на предположение системы.
+- **CURRENT** — уже реализованные validation/lifecycle rules;
+- **TARGET MVP** — утверждённые deterministic matching rules;
+- **LATER** — возможные расширения.
 
-### BR_SYS_002
+Weights и thresholds помечены `PROVISIONAL MATCHING V1 BASELINE`: они нужны
+для воспроизводимой первой fixture, но подлежат ручной review после неё.
 
-- Название: Устранимое ограничение
-- Приоритет (Severity): WARNING
-- Категория: Matching Result Classification
-- Назначение: Выделение заказов, которые можно выполнить после дополнительного организационного действия.
-- Логика: Если недостающий ресурс можно приобрести, арендовать или привлечь по договору, заказ не блокируется окончательно и получает статус условного соответствия.
-- Сообщение: «Заказ может стать доступным после устранения указанных ограничений».
-- Обоснование: Отсутствие материала, собственного транспорта, склада или отдельной операции не всегда означает невозможность выполнения заказа.
+## 2. Общие TARGET MVP rules
 
-### BR_SYS_003
+### BR_MCH_001 — UNKNOWN не является несовместимостью
 
-- Название: Недостаточно данных
-- Приоритет (Severity): INFO
-- Категория: Data Completeness
-- Назначение: Предотвращение необоснованных выводов при неполном профиле.
-- Логика: Если для проверки требования отсутствует необходимая характеристика профиля, система не признает заказ подходящим или неподходящим, а запрашивает уточнение данных.
-- Сообщение: «Недостаточно данных для достоверной оценки. Уточните указанные характеристики профиля».
-- Обоснование: Незаполненное поле не доказывает отсутствие производственной возможности.
+UNKNOWN:
 
-### BR_SYS_004
+- не создаёт hard conflict;
+- не даёт positive match;
+- не уменьшает compatibility;
+- уменьшает coverage;
+- обязательно объясняется в `missing_data`.
 
-- Название: Рекомендация по развитию
-- Приоритет (Severity): RECOMMENDATION
-- Категория: Capability Development
-- Назначение: Выделение необязательных улучшений, способных расширить доступный пул заказов.
-- Логика: Рекомендация не блокирует профиль или заказ и должна сопровождаться объяснением ожидаемого эффекта.
-- Сообщение: «Это улучшение может расширить доступные производственные возможности».
-- Обоснование: Рекомендации должны быть объяснимыми и не выдаваться за обязательные требования.
+### BR_MCH_002 — Hard conflict требует доказательств
 
-## BR_EQ_001
-- Название: Проверка геометрических ограничений токарного оборудования
-- Приоритет (Severity): ERROR ⭐⭐⭐⭐⭐
-- Категория: Equipment Validation
-- Назначение: Гарантия полноты данных технологического профиля для 
-автоматического сопоставления со спецификациями заказов.
-- Логика:
-```text
-ЕСЛИ в профиле предприятия зарегистрировано оборудование с типом 
-TURNING
-ТО для каждой единицы этого оборудования должен быть указан максимальный
-диаметр обработки.
-```
-- Сообщение: "Критическая ошибка: Для токарного оборудования обязательно 
-должен быть указан максимальный диаметр обработки."
-- Обоснование: Токарная обработка физически ограничена размерами 
-заготовки. Отсутствие этого параметра делает невозможным автоматический
-матчинг «Станок ↔ Заготовка вала».
-## BR_EQ_002
-- Название: Проверка пространственных ограничений фрезерного оборудования
-- Приоритет (Severity): ERROR ⭐⭐⭐⭐⭐
-- Категория: Equipment Validation
-- Назначение: Контроль заполнения критических метрик для фрезерной 
-группы станков.
-- Логика:
-```text
-ЕСЛИ в профиле предприятия зарегистрировано оборудование с 
-типом MILLING
-ТО для каждой единицы этого оборудования должны быть заполнены габариты
-рабочей зоны (X, Y, Z).
-```
-- Сообщение: "Критическая ошибка: Для фрезерного оборудования не 
-заполнены габариты рабочей зоны X, Y или Z."
-- Обоснование: Фрезерная обработка ограничена ходами по осям. 
-Без этих данных СППР пропустит заказ на крупногабаритную плиту, 
-которую физически нельзя будет обработать на имеющихся станках.
-## BR_INF_001
-- Название: Проверка энергообеспечения термического производства
-- Приоритет (Severity): WARNING ⭐⭐⭐
-- Категория: Infrastructure Compliance
-- Назначение: Предотвращение технологических сбоев и перегрузок 
-локальной энергосети предприятия.
-- Логика:
-```text
-ЕСЛИ на предприятии применяется технология THERMAL
-ТО производственная площадка должна обладать выделенной мощностью не
-менее 150 кВт ИЛИ иметь подключение к газоснабжению.
-```
-- Сообщение: "Внимание: На предприятии используется термическая 
-обработка, однако доступная электрическая мощность ниже нормативной
-и отсутствует магистральный газ."
-- Обоснование: Промышленные печи и установки ТВЧ обладают колоссальным
-энергопотреблением. Запуск термического участка без должной 
-инфраструктуры приведет к аварийному отключению или невозможности выйти
-на температурный режим.
-## BR_MAT_001
-- Название: Экспертная рекомендация по сварке титановых сплавов
-- Приоритет (Severity): RECOMMENDATION ⭐
-- Категория: Material Compatibility
-- Назначение: Повышение технологической готовности завода при 
-получении высокотехнологичных заказов.
-- Логика:
-```text
-ЕСЛИ в заказе используется материал из группы TITANIUM_HIGH_TEMP
-И изделие требует сварки титановых деталей
-ТО предприятие должно иметь в наличии сварочное оборудование с 
-поддержкой аргонодуговой сварки (TIG).
-```
-- Сообщение: "Рекомендация: Для сборки и сварки изделий из титановых 
-сплавов (TITANIUM_HIGH_TEMP) предприятию рекомендуется использовать 
-аргонодуговую сварку (TIG) во избежание брака."
-- Обоснование: Сварка титана на воздухе невозможна без защитной среды
-аргона высокого качества, иначе металл активно поглощает газы из 
-атмосферы, становится хрупким и покрывается трещинами.
-
-## Правила валидации и lifecycle Material
-
-### BR_MAT_002
-
-- Название: Валидность глобальной марки материала
-- Приоритет (Severity): ERROR
-- Категория: Material Validation
-- Назначение: Не допускать некорректные записи в глобальном каталоге марок
-  материалов.
-- Логика:
+Hard outcome разрешён только при одновременном выполнении:
 
 ```text
-group_code ссылается на существующий MaterialGroup
-И
-grade_name не равен NULL, не пуст и содержит непробельные символы
-И
-(density IS NULL ИЛИ density > 0)
-И
-(group_code, grade_name) уникальна
+подтверждённое MANDATORY requirement
++ подтверждённый несовместимый profile fact
++ отсутствие допустимого устранения, если criterion допускает remediation
 ```
 
-- Область применения: правило проверяется на application/API layer при create
-  и при PATCH затронутых полей. PATCH может изменять `group_code`, `grade_name`
-  и `density`; explicit `NULL` допустим для `density` и означает, что плотность
-  не указана или неизвестна. `group_code` и `grade_name` остаются non-null.
-- Ограничения: плотность хранится в кг/м³; верхняя граница и новый DB `CHECK`
-  не вводятся. Для `grade_name` не вводятся автоматический `trim`, case folding,
-  нормализация регистра или case-insensitive uniqueness. Существующий DB
-  `UNIQUE (group_code, grade_name)` сохраняется без изменений.
-- API errors: конкретный контракт ошибки дубликата определяется в vertical
-  slice по conventions проекта.
-- Обоснование: `Material` является shared/master-data записью конкретной марки,
-  а неизвестная плотность должна отличаться от физически недопустимого
-  неположительного значения.
+Отсутствие row в `PARTIAL/UNKNOWN` section не является несовместимым fact.
 
-### BR_MAT_003
+### BR_MCH_003 — Устранимое ограничение
 
-- Название: Безопасное удаление глобальной марки материала
-- Приоритет (Severity): ERROR
-- Категория: Material Lifecycle
-- Назначение: Не допускать destructive cascade при удалении используемой
-  master-data записи.
-- Логика:
+Если обязательный material/resource/document/operation можно получить,
+арендовать, продлить или выполнить по допустимому субподряду, outcome —
+`remediable_limitation`, а status не может быть `MATCH`, но opportunity не
+отклоняется как невозможная.
+
+### BR_MCH_004 — Determinism
+
+Одинаковые normalized inputs и baseline version дают одинаковые criterion
+outcomes, score, status и rank. ML/LLM, embeddings, fuzzy title similarity и
+скрытая автокалибровка запрещены в Matching v1.
+
+## 3. ProcurementOpportunity identity
+
+### BR_OPP_001 — Stable identity
 
 ```text
-ЕСЛИ для Material существует хотя бы один связанный MaterialItem
-ТО удаление Material отклоняется на application/service layer
+identity = (canonical_source, exact_external_id)
 ```
 
-- Ограничения: дочерние `MaterialItem` не удаляются каскадно как следствие
-  бизнес-операции удаления `Material`. Существующая настройка ORM
-  relationship/cascade является технической конфигурацией persistence layer и
-  не разрешает обход этого правила. На documentation-этапе ORM и миграции не
-  изменяются.
-- Обоснование: глобальная марка может использоваться зависимыми каталоговыми и
-  продуктовыми данными; их неявное уничтожение недопустимо.
+- source canonicalized до stable lowercase code;
+- external id очищается от внешних пробелов, source-defined case сохраняется;
+- один независимо оцениваемый lot имеет собственный external id;
+- title, customer, price, dates, URL и status не входят в identity.
 
-## Правила валидации и lifecycle MaterialItem
+### BR_OPP_002 — Repeat import
 
-### BR_MAT_004
+1. Новая identity → новая opportunity.
+2. Та же identity + тот же canonical payload → idempotent no-op.
+3. Та же identity + изменённый payload → update того же source snapshot и
+   повторный matching.
+4. Две строки одной identity с разными payload в batch → import conflict.
+5. Отсутствующий external id → validation error.
+6. Manual id создаётся один раз и сохраняется в файле; новый UUID при каждом
+   import запрещён.
 
-- Название: Валидность глобального варианта материала
-- Приоритет (Severity): ERROR
-- Категория: MaterialItem Validation
-- Назначение: Не допускать неоднозначные или физически некорректные записи в
-  глобальном каталоге вариантов материалов.
-- Логика:
+Hash всей строки, title, procurement number и URL не являются primary dedup
+keys.
+
+## 4. Required/optional opportunity data
+
+Обязательны:
+
+- `source`;
+- `external_id`;
+- non-blank `title`;
+- explicit status (`UNKNOWN` допустим);
+- минимум один structured matching signal.
+
+Условно обязательны:
+
+- currency при price;
+- unit при quantity;
+- canonical unit у числового requirement;
+- requirement strength у каждого item.
+
+Все остальные market и requirement fields optional/UNKNOWN.
+
+## 5. Tri-state requirements
+
+### BR_OPP_003 — Collection semantics
 
 ```text
-material_id ссылается на существующий Material
-И
-material_form_code ссылается на существующий MaterialForm
-И
-unit_of_measure входит в {kg, m, m2, m3, l, pcs}
-И
-(dimension_1 IS NULL ИЛИ dimension_1 — конечное число > 0)
-И
-(material_form_code != LIQUID_CHEMICAL ИЛИ dimension_1 IS NULL)
-И
-(material_id, material_form_code, dimension_1, unit_of_measure) уникальна,
-причём NULL в dimension_1 равен NULL для целей uniqueness
+null = неизвестно, было ли требование
+[]   = источник подтвердил отсутствие requirements
+[x]  = известны конкретные requirements
 ```
 
-- Семантика размера: `dimension_1` хранится только в `mm` и трактуется как
-  form-specific primary dimension, определённый в `04_domain_model.md`. Это
-  coarse attribute, не полная геометрия. Для всех forms, кроме
-  `LIQUID_CHEMICAL`, размер optional; его `NULL` означает, что размер не
-  участвует в identity и не детализирован.
-- Семантика единицы: `unit_of_measure` — базовая единица количества catalog
-  item, а не единица `dimension_1`. Принимается только точное ASCII spelling
-  `kg`, `m`, `m2`, `m3`, `l`, `pcs`; free text, silent trim, case folding,
-  automatic conversion и packaging units не допускаются. Матрица
-  `MaterialForm × unit_of_measure` не вводится.
-- Область применения: application/API layer проверяет правило при create и при
-  PATCH unused item на итоговом состоянии после объединения текущих и
-  переданных полей. Новый DB `CHECK` для диапазона или form rule не вводится.
-- DB uniqueness: целевой constraint использует PostgreSQL
-  `UNIQUE NULLS NOT DISTINCT`; application duplicate pre-check даёт понятную
-  доменную ошибку, DB остаётся authoritative backstop.
-- Обоснование: единая form-specific семантика и canonical vocabulary делают
-  identity воспроизводимой без добавления новых полей в MVP.
+Blank/отсутствующая колонка не преобразуется в `[]`, `0` или `false`.
 
-### BR_MAT_005
-
-- Название: Неизменяемость используемого варианта материала
-- Приоритет (Severity): ERROR
-- Категория: MaterialItem Lifecycle
-- Назначение: Не допускать скрытого изменения описания материала уже связанных
-  Products и destructive cascade при удалении shared master-data.
-- Логика:
+### BR_OPP_004 — Requirement strength
 
 ```text
-ЕСЛИ на MaterialItem не ссылается ни один Product
-ТО PATCH identity fields и DELETE разрешены
-
-ЕСЛИ на MaterialItem ссылается хотя бы один Product
-ТО MaterialItem immutable:
-PATCH material_id, material_form_code, dimension_1 или unit_of_measure запрещён
-И
-DELETE запрещён
+MANDATORY = источник явно требует выполнения
+PREFERRED = пожелание/преимущество
+UNKNOWN   = requirement известно, но обязательность не подтверждена
 ```
 
-- PATCH unused item: omitted-поле сохраняется, пустой PATCH `{}` является
-  no-op, explicit `NULL` допустим только для `dimension_1`. Non-nullable поля
-  очистить нельзя. При переходе на `LIQUID_CHEMICAL` существующий non-NULL
-  `dimension_1` очищается явным `dimension_1: null` в том же PATCH.
-- Новый вариант: если требуется иной физический вариант, создаётся новый
-  `MaterialItem`, после чего нужные Products явно переводятся на новый
-  `material_item_id`.
-- DELETE used item: отклоняется application/service layer; Product не
-  удаляется и его обязательный `material_item_id` не обнуляется. DB FK без
-  `CASCADE` и `SET NULL` остаётся последним integrity backstop.
-- Обоснование: `Product` хранит только `material_item_id` и не имеет snapshot.
-  Изменение используемой identity-записи иначе молча изменило бы описание
-  материала для всех связанных Products.
+Только `MANDATORY` может участвовать в hard rule.
 
-## Правила валидации и lifecycle Product
+## 6. Market eligibility
 
-### BR_PRD_001
+### BR_ELG_001 — NOT_ELIGIBLE
 
-- Название: Валидность профильного изделия
-- Приоритет (Severity): ERROR
-- Категория: Product Validation
-- Назначение: Не допускать неоднозначные, физически некорректные или
-  несвязанные с утверждёнными references Product records.
-- Логика:
+Opportunity получает `NOT_ELIGIBLE`, если:
+
+- status достоверно `CLOSED`, `CANCELLED` или `AWARDED`; либо
+- application deadline достоверно истёк.
+
+Date-only deadline, равный текущей дате, ещё допустим. При неизвестной timezone
+нельзя исключать opportunity раньше конца известной даты.
+
+Market exclusion записывается в `eligibility_reasons`, не в
+`hard_conflicts`. Поэтому:
 
 ```text
-profile_id ссылается на существующий EnterpriseProfile
-И
-product_type_code ссылается на существующий ProductType
-И
-material_item_id ссылается на существующий глобальный MaterialItem
-И
-sku_code и name после trim leading/trailing whitespace не пусты
-И
-weight_net — конечное число > 0 в kg
-И
-(required_it_grade IS NULL ИЛИ required_it_grade входит в integer range 1..18)
-И
-(required_ra IS NULL ИЛИ required_ra — конечное число > 0 в µm)
-И
-(profile_id, trimmed sku_code) уникальна с exact case-sensitive semantics
+NOT_ELIGIBLE ≠ INCOMPATIBLE
 ```
 
-- Text normalization: application layer сохраняет trimmed `sku_code` и `name`.
-  Регистр сохраняется; uppercase/lowercase normalization и case folding не
-  выполняются. Length limits `100`/`255` проверяются после trim.
-- Scope: `profile_id` задаёт ownership Product и поступает из parent-scoped
-  create route, а не из request body. Глобальный MaterialItem не требует
-  совпадения с каким-либо profile ownership.
-- Numeric semantics: `weight_net` хранится в `kg`, `required_ra` — в `µm`.
-  Верхние границы для этих полей в MVP не вводятся. Nullable quality fields
-  используют `NULL` как состояние «требование не указано». Product
-  `required_it_grade` намеренно поддерживает только integer subset IT1–IT18;
-  остальные designation не кодируются этим MVP field.
-- Duplicate contract: application/service pre-check на create и
-  resulting-state PATCH вызывает `DuplicateProductError`, который отображается
-  в HTTP 409. Текущий DB `UNIQUE (profile_id, sku_code)` остаётся authoritative
-  race-condition backstop, поскольку в нём хранится уже trimmed SKU с теми же
-  exact case-sensitive semantics.
-- DB boundary: новый DB `CHECK` для trim/range не вводится; ORM, migration,
-  indexes и seeds не меняются.
-- Обоснование: canonical physical units, ограниченный IT subset и
-  воспроизводимая persisted identity дают однозначный MVP contract без
-  изменения существующей DB-модели.
+UNKNOWN status/deadline не исключает opportunity и создаёт warning/missing
+data.
 
-### BR_PRD_002
+## 7. MatchAssessment contract
 
-- Название: Неизменяемость Product, используемого производственным заказом
-- Приоритет (Severity): ERROR
-- Категория: Product Lifecycle
-- Назначение: Не допускать скрытого ретроспективного изменения Product
-  requirements у связанных ProductionOrder и destructive cascade при удалении.
-- Логика:
+Результат одного matching содержит:
+
+- `match_status`;
+- `compatibility_score: 0..100 | null`;
+- `coverage: 0..1`;
+- `ranking_score: 0..100`;
+- `eligibility_reasons[]`;
+- `positive_reasons[]`;
+- `hard_conflicts[]`;
+- `remediable_limitations[]`;
+- `missing_data[]`;
+- `missing_capabilities[]`;
+- criterion trace с requirement/profile facts и rule code.
+
+`missing_capability` — подтверждённо отсутствующая capability. Она становится
+hard conflict только если конкретное MANDATORY rule доказывает невозможность;
+иначе может быть remediable.
+
+## 8. Matching v1 matrix
+
+| Criterion | PROCUREMENT FIELD | PROFILE FIELD | RULE | Outcome |
+|-----------|-------------------|---------------|------|---------|
+| Product experience | `product_type_codes`; title/OKPD2 context | `Product.product_type_code` | Exact category даёт небольшой positive; отсутствие Product — soft zero только здесь; fuzzy title/OKPD2 не используются | SOFT/UNKNOWN, never hard |
+| Material | `material_requirements` | `ProfileMaterialCapability` → `MaterialGroup/Material` | Exact material full; group partial; confirmed unsupported MANDATORY hard только без remediation | SOFT / conditional HARD / UNKNOWN/remediable |
+| Technology | `technology_requirements` | `ProfileTechnologyCapability` → `TechnologyType` | Supported full; preferred subset partial; confirmed unsupported MANDATORY hard только при complete scope и запрете external execution | SOFT / conditional HARD / UNKNOWN/remediable |
+| Equipment | `equipment_requirements` | type, CNC, axes, work zones, diameter | Exact facts positive; below mandatory numeric requirement hard только если все relevant confirmed options fail | SOFT / conditional HARD / UNKNOWN |
+| Dimensions/mass | dimensional requirements | read-only Equipment projection | Within confirmed limits positive; exceeds confirmed maxima of all relevant options hard; absent max mass UNKNOWN | SOFT / conditional HARD / UNKNOWN |
+| Quantity/capacity | quantity + unit | Сопоставимой capacity CURRENT нет | Сравнение только в одной unit/period; иначе UNKNOWN | UNKNOWN in first v1 |
+| Execution deadline | execution deadline | Earliest feasible completion CURRENT нет | Hard only after confirmed comparable availability; otherwise UNKNOWN | UNKNOWN in first v1 |
+| Region/logistics | region code | profile region + optional transport scope | Same region positive; another region not hard | SOFT/UNKNOWN |
+| Certificates | required certificates + date | type + expiry + completeness | Valid positive; obtainable/renewable remediable; hard only if impossible by required date is proven | SOFT / conditional HARD / remediable / UNKNOWN |
+| Quality | IT/Ra/measuring/CMM requirements | `QualityCapability` | `min_it_grade <= required`, `min_ra <= required`; mandatory confirmed numeric failure hard; technical false default not proof | SOFT / conditional HARD / UNKNOWN |
+| Market status | status/application deadline | matching time | Closed/cancelled/awarded/expired → NOT_ELIGIBLE | ELIGIBILITY, not compatibility |
+| Procurement type | source-side type | no profile fact | Display/filter only; do not use `OrderType` | NOT SCORED |
+| Price | price/currency | no cost/finance profile | Display only | NOT SCORED |
+
+OKVED не участвует в score и не доказывает capability. Industry не участвует
+в score v1.
+
+## 9. Technical boolean defaults
+
+`Equipment.cnc`, `QualityCapability.measuring_tools`, `cim_machine` и ряд
+infrastructure booleans имеют DB default `false`. До human confirmation
+`false` нельзя использовать как доказанное отсутствие в hard rule.
+
+## 10. Hard filters v1
+
+Разрешены только следующие классы production/compliance hard conflicts после
+успешной market eligibility:
+
+1. **Physical impossibility:** MANDATORY dimension/diameter/mass или equipment
+   parameter превышает подтверждённые capabilities всех relevant options.
+2. **Quality impossibility:** MANDATORY IT/Ra requirement строже
+   подтверждённого best profile capability.
+3. **Mandatory compliance:** подтверждены complete certificate section,
+   explicit required date и невозможность получить/продлить документ вовремя.
+4. **Confirmed capability conflict:** mandatory material/technology/equipment
+   capability явно unsupported в complete scope и remediation/source-side
+   outsourcing недопустимы.
+5. **Quantity/deadline — later conditional:** только после появления
+   подтверждённых comparable capacity/earliest-completion facts.
+
+Простое отсутствие row, Product или own transport hard conflict не создаёт.
+Кандидатный `BR_COM_001` не активируется без отдельной нормативной проверки.
+
+## 11. UNKNOWN rules
+
+Criterion возвращает UNKNOWN, если:
+
+- procurement field `null` или strength `UNKNOWN`;
+- profile fact отсутствует;
+- section `PARTIAL/UNKNOWN`, а absence row — единственное evidence;
+- units/periods несопоставимы;
+- mapping classifications не утверждён;
+- raw prose не нормализована;
+- technical default не подтверждён;
+- rule требует cost/capacity/calendar data, которых нет.
+
+Origin explanations:
+
+- неизвестно в opportunity → `missing_data(origin=PROCUREMENT_SOURCE)`;
+- неизвестно в profile → `missing_data(origin=ENTERPRISE_PROFILE)`;
+- capability confirmed absent, но устранима → `missing_capabilities` +
+  `remediable_limitations`;
+- confirmed non-remediable mandatory conflict → `hard_conflicts`.
+
+## 12. PROVISIONAL MATCHING V1 BASELINE
+
+### 12.1 Weights
+
+| Criterion | Weight |
+|-----------|-------:|
+| Product experience | 8 |
+| Material capability | 23 |
+| Technology capability | 23 |
+| Equipment capability | 15 |
+| Dimensions / mass | 12 |
+| Quantity / capacity | 5 |
+| Execution deadline | 5 |
+| Region / logistics | 3 |
+| Certificates | 3 |
+| QualityCapability | 3 |
+| **TOTAL** | **100** |
+
+Weight — вклад positive compatibility, а не severity hard rule.
+
+### 12.2 Criterion values
 
 ```text
-ЕСЛИ на Product не ссылается ни один ProductionOrder
-ТО PATCH business fields и DELETE разрешены
-
-ЕСЛИ на Product ссылается хотя бы один ProductionOrder
-ТО Product immutable:
-PATCH любого переданного business field запрещён
-И
-DELETE запрещён
+1.0 = полное подтверждённое соответствие
+0.5 = частичное соответствие или устранимое ограничение
+0.0 = известное soft mismatch без hard conflict
+UNKNOWN = недостаточно данных
+NOT_APPLICABLE = requirement явно отсутствует
 ```
 
-- PATCH unused Product: можно изменять `product_type_code`,
-  `material_item_id`, `sku_code`, `name`, `weight_net`, `required_it_grade` и
-  `required_ra`; `profile_id` immutable и не входит в update payload.
-- Resulting-state validation: references, text normalization, numeric ranges и
-  `(profile_id, sku_code)` uniqueness проверяются после объединения текущих и
-  переданных значений.
-- PATCH presence semantics: omitted-поле сохраняется; пустой PATCH `{}`
-  является no-op, в том числе для используемого Product; explicit `NULL`
-  допустим только для `required_it_grade` и `required_ra`. Non-nullable fields
-  очистить нельзя.
-- Used Product: PATCH с любым переданным business field и DELETE вызывают
-  `ProductInUseError`, отображаемый в HTTP 409, даже если переданное значение
-  совпадает с текущим.
-- DELETE used Product: ProductionOrder не удаляется, а обязательный
-  `ProductionOrder.product_id` не обнуляется. FK без `ON DELETE CASCADE` и
-  `ON DELETE SET NULL` остаётся последним integrity backstop.
-- Изменение спецификации: создаётся новый Product/SKU; новые ProductionOrder
-  должны ссылаться на него. Versioning/BOM и изменение lifecycle самого
-  ProductionOrder не вводятся этим правилом.
-- Обоснование: ProductionOrder хранит только `product_id` и не имеет snapshot
-  Product fields. Mutable used Product иначе молча изменял бы материал, тип,
-  массу и quality requirements уже связанных заказов.
+Прозрачное значение между 0 и 1 допустимо для воспроизводимой доли, например
+подтверждённых preferred technologies.
 
-## BR_COM_001
-- Название: Юридический комплаенс для нефтегазового сектора
-- Приоритет (Severity): ERROR ⭐⭐⭐⭐⭐
-- Категория: Industry Compliance
-- Назначение: Архитектурный пример проверки отраслевого compliance для заказа,
-если применимость конкретного разрешительного требования подтверждена.
-- Статус применения: Кандидатное правило. До отдельной юридической и
-нормативной верификации не должно использоваться как production ERROR-rule.
-- Логика:
-```text
-ЕСЛИ отрасль конечного применения входящего заказа классифицирована
-в справочнике Industry как PNC_IND_06 (Добыча нефти и газа)
-И для конкретного предмета заказа нормативно подтверждено требование
-лицензии/разрешительного документа PNC_CERT_RTN
-ТО предприятие должно иметь действующий и не просроченный 
-сертификат/лицензию PNC_CERT_RTN.
-```
-- Сообщение: "Блокировка заказа: Для предмета этого заказа подтверждено
-обязательное разрешительное требование PNC_CERT_RTN, но соответствующий
-действующий документ в профиле предприятия отсутствует."
-- Обоснование: Принадлежность заказа к нефтегазовому сегменту сама по себе не
-доказывает необходимость конкретной лицензии. Нормативное основание, область
-регулируемых работ и применимость требования к предмету заказа должны быть
-проверены профильным юридическим или нормативным экспертом до активации правила.
+### 12.3 Formulas
 
-В этом правиле `Industry` означает отрасль конечного применения заказа, а не
-основной или дополнительный ОКВЭД предприятия-исполнителя. ОКВЭД сам по себе
-не подтверждает соответствие отраслевым требованиям и не запускает это
-правило.
-
-Источник `ProductionOrder.industry_code` для входящего заказа пока не
-определён. Возможный способ получения значения не является частью этого
-бизнес-правила и должен быть принят отдельным архитектурным решением.
-
-## Правила валидации Transport
-
-### BR_TR_001
-
-- Название: Диапазоны характеристик автомобильного транспорта
-- Приоритет (Severity): ERROR
-- Категория: Transport Validation
-- Назначение: Не допускать физически бессмысленные значения характеристик
-  одной транспортной единицы и количества единиц в группе.
-- Логика:
+Пусть `w_i` — weight, `v_i` — известное criterion value.
 
 ```text
-payload_tons > 0
-И
-quantity >= 1
-И
-(body_volume_cube IS NULL ИЛИ body_volume_cube > 0)
+compatibility_score =
+    100 × Σ(w_i × v_i)
+    / Σ(w_i для известных применимых criteria)
+
+coverage =
+    Σ(w_i для известных применимых criteria)
+    / Σ(w_i для всех ожидаемых применимых criteria)
+
+ranking_score =
+    0.85 × compatibility_score
+    + 0.15 × (100 × coverage)
 ```
 
-- Область применения: правило проверяется на application/API layer при create
-  и при изменении соответствующего поля. Новые DB `CHECK` constraints для этих
-  диапазонов не вводятся.
-- Обоснование: `payload_tons` и `body_volume_cube` описывают одну единицу
-  транспорта, а `quantity` — число однотипных единиц в строке. При
-  `quantity > 1` характеристики не становятся суммарными.
+UNKNOWN requirement остаётся в expected coverage denominator, но исключается
+из compatibility. `[]`/NOT_APPLICABLE исключается из обоих denominators.
 
-### BR_TR_002
+Если неизвестен любой core criterion, это отражается coverage. Если не оценён
+ни один known applicable criterion, `compatibility_score=null`,
+`ranking_score=0`.
 
-- Название: Трёхсостояние рефрижераторного оборудования
-- Приоритет (Severity): INFO
-- Категория: Data Completeness
-- Назначение: Отличать подтверждённое отсутствие рефрижератора от отсутствия
-  сведений.
-- Логика:
+### 12.4 Status priority
+
+Правила применяются сверху вниз:
+
+1. market unavailable → `NOT_ELIGIBLE`;
+2. production/compliance hard conflict → `INCOMPATIBLE`;
+3. mandatory remediable limitation → `POTENTIAL` независимо от score/coverage;
+4. coverage `< 0.35` или не оценён ни один core criterion из
+   Material/Technology/Equipment/Dimensions/Quality → `INSUFFICIENT_DATA`;
+5. compatibility `< 50` → `LOW_MATCH`;
+6. compatibility `< 75` или coverage `< 0.60` → `POTENTIAL`;
+7. иначе → `MATCH`.
+
+Для `NOT_ELIGIBLE` capability score может не вычисляться:
+`compatibility_score=null`, `ranking_score=0`.
+
+Thresholds `0.35/0.60`, `50/75` и blend `85/15` provisional.
+
+## 13. TOP-10
+
+### BR_RNK_001 — Exclusion
+
+`NOT_ELIGIBLE` и `INCOMPATIBLE` исключаются. Остальные statuses могут попасть
+в ranking с явной маркировкой.
+
+### BR_RNK_002 — Deterministic tie-break
 
 ```text
-has_refrigeration = TRUE  → наличие подтверждено
-has_refrigeration = FALSE → отсутствие подтверждено
-has_refrigeration = NULL  → значение неизвестно или не предоставлено
+ranking_score DESC
+→ coverage DESC
+→ application_deadline ASC NULLS LAST
+→ source ASC
+→ external_id ASC
 ```
 
-- Ограничения: в MVP нет `TransportType`, для которого `True` или `False`
-  обязательно либо запрещено. Default поля — `None`/`NULL`.
-- Обоснование: правило конкретизирует `BR_SYS_003`: незаполненное значение не
-  доказывает отсутствие производственной возможности и не должно молча
-  преобразовываться в `False`.
+### BR_RNK_003 — Result size
+
+Вернуть первые 10. Если eligible/non-incompatible opportunities меньше,
+вернуть фактическое количество. Не создавать synthetic filler records.
+
+## 14. Profile completeness rules
+
+```text
+UNKNOWN
+= section не проверен; absence row ничего не доказывает
+
+PARTIAL
+= список явно неполный либо изменён после confirmation;
+  known facts применимы, absence row ничего не доказывает
+
+CONFIRMED_COMPLETE
+= human подтвердил section/scope/snapshot;
+  absence row может быть negative fact в пределах scope
+```
+
+Import/seed/default/row count/progress percentage не создают
+`CONFIRMED_COMPLETE`. Изменение confirmed section → `PARTIAL`.
+
+## 15. CURRENT validation/lifecycle rules preserved
+
+Следующие реализованные rules остаются CURRENT и не объявляются Matching v1:
+
+- Equipment numeric/ownership validations;
+- Material identity `(group_code, grade_name)`, positive finite density и safe
+  delete при отсутствии MaterialItem references;
+- MaterialItem canonical units, form/dimension rules, nullable uniqueness,
+  immutability when used by Product;
+- Product profile ownership, trimmed non-blank SKU/name, exact per-profile SKU
+  uniqueness, positive weight/Ra, IT1–IT18 and in-use guard;
+- Transport positive payload/quantity, nullable positive volume, profile
+  isolation и tri-state refrigeration.
+
+CURRENT Product in-use guard срабатывает из-за `ProductionOrder`. Он честно
+сохраняется как implementation fact, но не задаёт TARGET MVP market lifecycle.
+
+`BR_COM_001` остаётся candidate rule, а не active production hard filter.
+
+## 16. Blocking gaps
+
+До first meaningful TOP-10 блокируют только:
+
+1. profile technology capability;
+2. profile material capability;
+3. section completeness semantics/mechanism.
+
+Capacity, availability, ProcessingEnvelope, Product ↔ OKPD2 и live ЕИС не
+являются prerequisites.
+
+## 17. LATER / recalibration
+
+После end-to-end fixture допускается только явная manual review baseline на
+конкретных ranking errors. ML/automatic optimization не используется.
+
+LATER rules могут добавить capacity, availability, richer compliance,
+classification mappings и AI-assisted normalization после отдельных решений.

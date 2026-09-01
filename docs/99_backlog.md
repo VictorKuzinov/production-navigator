@@ -1,131 +1,190 @@
-# Backlog
+# Backlog после MVP realignment
 
-## Классификаторы и регистрационный профиль
+## 1. Статус и правило приоритета
 
-- определить механизм назначения `Industry` предприятию; основной `OKVED` не должен автоматически становиться основной `Industry`;
-- определить источник `ProductionOrder.industry_code` для входящих заказов и проверить, должно ли это поле оставаться обязательным;
-- определить роль `Industry` в поиске и matching помимо уже утверждённых правил отраслевого compliance;
-- решить, требуется ли явное сопоставление `OKVED ↔ Industry`; если требуется — отдельно спроектировать его правила, версионирование и происхождение данных;
-- определить официальный источник, редакцию и дату версии локального классификатора `OKVED`;
-- определить процедуру обновления `OKVED`, обработки удалённых или изменённых кодов и сохранения ссылочной целостности;
-- определить, на каком уровне обеспечивается не более одного основного `EnterpriseOKVED` для профиля: ограничением БД, сервисным правилом или иным механизмом;
-- определить порядок ручного ввода и подтверждения регистрационных данных при недоступности интеграции с ЕГРЮЛ;
-- при необходимости исследовать классификаторы продукции и их роль в определении отрасли конечного применения заказа;
-- решить, требуется ли одной PNC-записи несколько внешних сопоставлений вместо одной пары `ref_system/ref_code`;
-- на отдельном этапе привести seed `Region` и `CompanySize` в соответствие с документированной моделью внутренних PNC-кодов и внешних идентификаторов, не меняя эталонную классификацию в документации.
-- определить целевую модель хранения технологий конкретного предприятия:
-  текущая ORM содержит `TechnologyType`, но не связь с `EnterpriseProfile`;
-  историческое имя `ProfileTechnology` до этого решения не обозначает
-  ORM-сущность;
-- согласовать целевое хранение остальных предметных требований, ранее обозначенных историческими именами `ProcessingLimits`, `ProductionResources`, `QualityControl` и `AdditionalCapabilities`: в `04_domain_model.md` они отделены от утверждённых ORM-сущностей и до отдельного решения не должны трактоваться как таблицы или готовые модели;
-- провести отдельную юридическую и нормативную верификацию `BR_COM_001`: определить регулируемые работы, оборудование, область применения `PNC_CERT_RTN` и условия, при которых правило допустимо активировать как production ERROR-rule.
+Этот backlog содержит только **POST-FIRST-TOP-10 / LATER** work. Утверждённые
+TARGET MVP concepts не возвращаются в список как нерешённый product scope.
 
-## Материалы
+Порядок:
 
-- `Material` и `MaterialItem` составляют глобальный shared/master-data каталог,
-  не принадлежат отдельному `EnterpriseProfile` и не получают `profile_id`.
-  Самостоятельный CRUD глобального `Material` не блокируется следующими
-  нерешёнными вопросами.
-- Отдельно спроектировать capability-связь `EnterpriseProfile ↔ обрабатываемые
-  материалы`. Текущая цепочка `Product → MaterialItem → Material` показывает
-  только материалы заведённых продуктов и не заменяет общий перечень
-  возможностей предприятия. Конкретная модель связи пока не утверждена;
-  историческое имя `ProfileMaterial` не обозначает ORM-сущность.
-- Если после MVP потребуется точное описание сортамента и геометрическая
-  совместимость, отдельно спроектировать дополнительные размеры или иную
-  геометрическую модель `MaterialItem`. Текущий `dimension_1` остаётся одним
-  form-specific coarse attribute в миллиметрах и не описывает полную геометрию.
+```text
+first deterministic explainable TOP-10
+→ review provisional baseline
+→ only then later integrations and depth
+```
 
-Семантика `dimension_1`, closed vocabulary `unit_of_measure`, nullable
-uniqueness через PostgreSQL `NULLS NOT DISTINCT` и lifecycle `MaterialItem`
-утверждены и больше не являются backlog-вопросами. Конкретное API route naming
-остаётся частью общего backlog по API conventions, а не отдельным нерешённым
-вопросом `MaterialItem`.
+## 2. Не является backlog: уже утверждено для TARGET MVP
 
-## Железнодорожные логистические возможности
+Следующие решения обязательны для критического пути и больше не являются
+вопросами «нужно ли это делать»:
 
-Текущий `Transport` ограничен автомобильными транспортными средствами и их
-однородными группами. Для будущего описания железнодорожных логистических
-возможностей предприятия требуется отдельное архитектурное решение:
+- independent `ProcurementOpportunity`;
+- prepared/manual/file ingestion;
+- stable identity `(canonical_source, exact_external_id)`;
+- profile technology capability;
+- profile material capability;
+- section completeness semantics;
+- deterministic Matching v1;
+- separate compatibility and coverage;
+- explanations and deterministic TOP-10;
+- UNKNOWN semantics;
+- `NOT_ELIGIBLE ≠ INCOMPATIBLE`;
+- `ProductionOrder` frozen outside current MVP.
 
-- как моделировать подъездные пути и железнодорожный тупик;
-- как описывать железнодорожную инфраструктуру;
-- как отделять инфраструктуру от подвижного состава;
-- как моделировать вагоны и локомотивы;
-- как отражать собственность, аренду и иные способы доступа к таким ресурсам;
-- нужна ли одна агрегированная capability, несколько профильных сущностей или
-  связи с внешними справочниками.
+Их implementation design выполняется отдельным следующим этапом, а не
+откладывается в LATER backlog.
 
-До принятия решения железнодорожные объекты не должны добавляться в
-`TransportType` или сохраняться как `Transport`.
+## 3. Live market integrations — POST-FIRST-TOP-10
 
-## Интеграция с ЕГРЮЛ
+- live ЕИС adapter;
+- commercial platform adapters;
+- provider-specific auth, rate limits and retries;
+- polling/cursors and source update scheduling;
+- raw payload archive/revision history, если требуется;
+- reconciliation conflicts across sources;
+- monitoring source freshness and failures.
 
-- зафиксировать фактический контракт ответа текущего провайдера `api-fns.ru` и создать его валидируемую провайдерскую схему без переноса внешних имён полей в доменную модель;
-- определить провайдер-независимую нормализованную схему регистрационных данных, обязательные и необязательные поля, а также правила преобразования наименования, ИНН, ОГРН и адресных сведений;
-- реализовать прикладной сервис поиска и импорта, отделив предварительное заполнение от сохранения подтверждённых пользователем данных;
-- спроектировать FastAPI endpoint поиска по ИНН и его внутренние request/response/error-контракты;
-- определить правила повторного импорта, разрешения конфликтов, защиты пользовательских исправлений и запрета частичного обновления;
-- определить конкретные значения таймаутов, необходимость и количество повторов, backoff и circuit breaker; до решения не фиксировать случайные значения в архитектуре;
-- определить fallback и сценарий ручного ввода при недоступности провайдера или отсутствии записи;
-- ввести интерфейс провайдера и критерии переключения с `api-fns.ru` на другой источник без изменения доменного слоя и пользовательского API;
-- определить аудит происхождения: идентификатор источника, время получения, версия/идентификатор ответа и правила хранения без избыточного копирования персональных и регистрационных данных;
-- определить поведение для некорректного внешнего ОКВЭД и корректного кода, отсутствующего в локальном `OKVED`, без автоматического создания классификационной записи;
-- согласовать обновление локального классификатора `OKVED` с обработкой расхождений между его редакцией и данными конкретного предприятия;
-- утвердить политику безопасного логирования: не выводить API-ключ, полный URL с ключом, сырой ответ провайдера и чувствительные данные в traceback;
-- добавить обезличенные контрактные fixtures только после утверждения схемы ответа и проверить устойчивость адаптера к отсутствующим полям и изменению внешнего JSON.
+Live integration не является prerequisite первой fixture.
 
-## Аналитика рынка и эффективности
+## 4. AI and semantic normalization — LATER
 
-Следующие возможности не входят в MVP и должны разрабатываться только после подключения стабильных источников заказов, накопления истории и определения достоверной методики расчета.
+- AI/LLM extraction structured requirements from prose;
+- fuzzy/semantic subject matching;
+- embeddings and semantic retrieval;
+- human review workflow for extracted requirements;
+- quality/evaluation set for normalization.
 
-### Рыночные метрики
+AI не заменяет deterministic rule engine и не участвует в provisional score.
 
-- количество найденных заказов за выбранный период;
-- количество заказов, соответствующих текущему профилю;
-- количество заказов с устранимыми ограничениями;
-- основные причины отклонения заказов;
-- распределение доступных заказов по отраслям, технологиям и регионам;
-- динамика доступного пула заказов.
+## 5. Classification depth — POST-FIRST-TOP-10
 
-### Оценка влияния улучшений
+- Product ↔ OKPD2 mapping, только если fixture показывает пользу;
+- versioning external classification mappings;
+- richer product/material taxonomy;
+- multiple external mappings per PNC reference;
+- official OKVED edition/update lifecycle;
+- explicit OKVED ↔ Industry mapping, если будет доказана потребность;
+- separate approved Industry rules.
 
-- моделирование влияния нового оборудования на доступный пул заказов;
-- оценка эффекта от получения сертификата;
-- оценка эффекта от добавления технологии или материала;
-- сравнение нескольких вариантов развития производственной базы.
+OKVED и Industry не входят в scoring v1.
 
-Такие расчеты должны показывать потенциальное изменение количества и объема доступных заказов, но не объявлять инвестицию прибыльной без данных о себестоимости, трудоемкости, загрузке, финансировании и других экономических показателях.
+## 6. Capacity and availability — POST-FIRST-TOP-10
 
-### Фактическая загрузка и экономика производства
+- coarse confirmed capacity snapshots with comparable unit/period;
+- current availability / earliest feasible completion;
+- workload and calendar semantics;
+- refresh/confirmation lifecycle;
+- personnel/shifts where required;
+- production route and time norms;
+- evidence and confidence of estimates.
 
-Расчет фактической и потенциальной загрузки откладывается до появления данных о:
+Нельзя заменять capacity значением `Equipment.quantity` или available area.
+До появления approved model quantity/deadline remain UNKNOWN.
 
-- технологических маршрутах;
-- нормах времени;
-- календаре производства;
-- доступности оборудования и персонала;
-- действующих заказах;
-- производственных сменах.
+## 7. Processing depth — LATER
 
-Оценка прибыльности откладывается до появления данных о себестоимости, стоимости материалов, трудоемкости, налогах, логистике и финансовых условиях заказа.
+- max workpiece mass and missing equipment limits;
+- richer geometry and multi-axis processing envelopes;
+- material form/range restrictions;
+- cross-equipment route feasibility;
+- lifting/storage/infrastructure criteria for relevant opportunities.
 
-## API contract и соглашения маршрутизации
+`ProcessingEnvelope` не объявляется обязательной entity. Возможность отдельной
+model оценивается только после первой fixture.
 
-Сейчас API routes определяются при реализации отдельных vertical slices
-на основании сложившихся conventions проекта и не имеют отдельного
-нормативного документа.
+## 8. Execution / ERP — LATER
 
-После стабилизации основных сущностей необходимо:
+- redesign current `ProductionOrder` in a separate bounded context;
+- transition from awarded opportunity/contract to internal execution;
+- BOM, routes, operations and norms;
+- scheduling, shifts and resource calendars;
+- execution states/history;
+- production documents and audit;
+- cancellation/deletion/concurrency semantics.
 
-- инвентаризировать фактически реализованные `/api/v1` routes;
-- определить единые naming conventions для collection/item endpoints;
-- зафиксировать правила parent-scoped и globally addressed resources;
-- зафиксировать plural/singular naming;
-- описать стандартные HTTP status codes и response contracts;
-- определить PATCH semantics и общие правила ошибок;
-- создать отдельный API contract document либо соответствующий нормативный
-  раздел в архитектурной документации.
+CURRENT ProductionOrder foundation не продолжать как Stage 2/3 до этого
+design. `OrderType` не считать procurement type.
 
-До этого существующие и новые routes должны сохранять совместимость с уже
-принятыми conventions проекта.
+## 9. CRM and commercial workflow — LATER
+
+- leads/favorites and responsible users;
+- application preparation;
+- customer communications;
+- contracts;
+- invoices/payments;
+- document flow;
+- external CRM integrations.
+
+Эти capabilities не входят в Matching v1.
+
+## 10. Economics and analytics — LATER
+
+- cost model;
+- material and labor costs;
+- logistics and financing;
+- profitability;
+- market trend analytics;
+- conversion and win-rate history;
+- impact simulation for new equipment/certificates;
+- advanced recommendation analytics.
+
+Нельзя объявлять opportunity прибыльной только по compatibility score.
+
+## 11. MatchAssessment persistence — optional LATER decision
+
+После first TOP-10 решить, нужен ли stored assessment history для:
+
+- reproducibility across rule versions;
+- audit and user comparison;
+- analytics;
+- debugging source/profile changes.
+
+Compute-on-demand остаётся допустимым. Persistence не должна создавать
+execution-order lifecycle.
+
+## 12. Security and tenancy — separate decision
+
+- authentication;
+- authorization;
+- roles and ownership;
+- multi-tenancy;
+- audit/security logging;
+- retention and data isolation.
+
+Конкретная architecture не утверждена realignment memo.
+
+## 13. Registration onboarding — LATER depth
+
+- provider-independent normalized ЕГРЮЛ schema;
+- confirmed import and conflict resolution;
+- fallback/manual correction;
+- provider replacement and safe logging;
+- Region mapping from address;
+- OKVED version mismatch handling.
+
+Registration lookup может улучшать onboarding, но не доказывает capability и
+не блокирует first TOP-10.
+
+## 14. Infrastructure and logistics — LATER depth
+
+- railway infrastructure and rolling stock domain;
+- special storage/handling rules;
+- logistics cost/distance model;
+- third-party logistics capability;
+- infrastructure completeness confirmations when a rule needs absence facts.
+
+CURRENT Warehouse/LiftingEquipment/Transport remain valid foundation, but are
+not mandatory sections first matching profile.
+
+## 15. API and operational architecture — after core design
+
+- public route naming conventions;
+- import job lifecycle;
+- async processing only if fixture demonstrates need;
+- idempotency/concurrency implementation;
+- observability/metrics;
+- deployment and scaling;
+- API versioning.
+
+Не добавлять сложную concurrency architecture до отдельного design и
+measured need.
