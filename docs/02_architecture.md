@@ -22,6 +22,32 @@ EnterpriseProfile
 его с одним профилем и возвращает воспроизводимый TOP-10. Live source adapter,
 frontend, execution lifecycle и ML не являются prerequisite.
 
+### 1.1 Ограничение выполнения первой версии: один оператор
+
+Целевая модель выполнения первой версии — один оператор и последовательное
+изменение производственного профиля. Одновременное конкурентное редактирование
+одного профиля несколькими пользователями не поддерживается.
+
+В первой версии не проектируются `User`, Auth, RBAC, роли и permissions,
+пользовательские сессии, optimistic locking, механизмы конфликтов конкурентного
+редактирования, audit log и multi-tenancy. Это LATER scope, а не постоянное
+архитектурное ограничение системы.
+
+Однопользовательская граница не отменяет обычную целостность данных. В первой
+версии обязательны:
+
+- одна transaction для одной бизнес-операции, изменяющей несколько связанных
+  записей;
+- DB constraints `FK`, `UNIQUE` и `CHECK`;
+- rollback всех связанных изменений при ошибке;
+- согласованное изменение состояния полноты раздела вместе с изменением его
+  данных.
+
+Обычная транзакционная целостность не является многопользовательской функцией и
+не переносится в LATER. Архитектура не должна намеренно препятствовать будущему
+многопользовательскому режиму, но его механизмы не реализуются заранее и не
+являются условием первого TOP-10.
+
 ## 2. CURRENT architecture
 
 Текущий backend — асинхронное FastAPI-приложение на Python 3.12+ с SQLAlchemy
@@ -223,6 +249,7 @@ dimensions/diameter/axes/CNC читаются как projection из подтв�
 | Ranking | TOP-10 отсутствует | Provisional baseline + tie-break | Recalibration after fixtures |
 | ProductionOrder | ORM/migration и guards существуют | Frozen, вне runtime MVP | Возможный execution context |
 | Source integration | Нет live ЕИС | Prepared import | ЕИС/commercial adapters |
+| Operating model | Нет user/auth domain | Один оператор; последовательное изменение профиля | User/Auth/RBAC, concurrent editing, multi-tenancy |
 
 ## 12. Intentionally unresolved
 
@@ -231,7 +258,7 @@ dimensions/diameter/axes/CNC читаются как projection из подтв�
 - окончательные ORM class/table/column names новых concepts;
 - API routes и CRUD;
 - persistence `MatchAssessment`;
-- authentication/multi-tenancy;
-- concurrency model ingestion;
+- architecture LATER user/auth/RBAC/multi-tenancy;
+- LATER locking/conflict model для совместного редактирования одного профиля;
 - live adapter scheduling/retries;
 - detailed capacity and production scheduling.

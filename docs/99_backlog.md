@@ -100,7 +100,7 @@ model оценивается только после первой fixture.
 - scheduling, shifts and resource calendars;
 - execution states/history;
 - production documents and audit;
-- cancellation/deletion/concurrency semantics.
+- cancellation/deletion lifecycle semantics.
 
 CURRENT ProductionOrder foundation не продолжать как Stage 2/3 до этого
 design. `OrderType` не считать procurement type.
@@ -142,16 +142,30 @@ design. `OrderType` не считать procurement type.
 Compute-on-demand остаётся допустимым. Persistence не должна создавать
 execution-order lifecycle.
 
-## 12. Security and tenancy — separate decision
+## 12. Многопользовательский режим, доступ и конкурентное редактирование — LATER
 
-- authentication;
-- authorization;
-- roles and ownership;
-- multi-tenancy;
-- audit/security logging;
-- retention and data isolation.
+- `User` и Auth;
+- роли, permissions и RBAC;
+- подтверждённая identity пользователя;
+- журнал действий пользователей и audit trail;
+- optimistic locking;
+- revision/version tokens для конкурентного редактирования;
+- обнаружение устаревшего изменения;
+- обнаружение устаревшего подтверждения полноты;
+- обработка конфликтов конкурентного редактирования;
+- session management;
+- PostgreSQL-тесты конкурентных пользовательских сценариев;
+- multi-tenancy, если возникнет соответствующая продуктовая необходимость;
+- retention и data isolation, необходимые выбранной access model.
 
-Конкретная architecture не утверждена realignment memo.
+Этот блок не является необходимым условием первого meaningful TOP-10. К нему
+следует возвращаться после проверки основной однопользовательской продуктовой
+цепочки на реальных данных либо при появлении фактической потребности в
+одновременной работе нескольких пользователей с одним профилем.
+
+Первая версия не объявляется навсегда однопользовательской: её архитектура не
+должна намеренно препятствовать такому развитию. Однако multi-user mechanisms
+не реализуются заранее и не увеличивают текущий MVP scope.
 
 ## 13. Registration onboarding — LATER depth
 
@@ -181,10 +195,11 @@ not mandatory sections first matching profile.
 - public route naming conventions;
 - import job lifecycle;
 - async processing only if fixture demonstrates need;
-- idempotency/concurrency implementation;
+- idempotency implementation там, где её требует import/API contract;
 - observability/metrics;
 - deployment and scaling;
 - API versioning.
 
-Не добавлять сложную concurrency architecture до отдельного design и
-measured need.
+Обычная idempotency и транзакционная целостность не являются
+многопользовательской concurrency architecture. Механизмы совместного
+редактирования из раздела 12 не добавлять до measured product need.

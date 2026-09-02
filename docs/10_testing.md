@@ -104,10 +104,42 @@ CONFIRMED_COMPLETE / PARTIAL / UNKNOWN
 Обязательные cases:
 
 - import/seed/default/row count do not create CONFIRMED_COMPLETE;
-- explicit human confirmation records scope/snapshot/time;
+- explicit human confirmation при `CONFIRMED_COMPLETE` фиксирует:
+  - подтверждаемый section/current-content scope;
+  - простой непустой идентификатор оператора / confirmer;
+  - confirmation time;
 - change after confirmation → PARTIAL;
 - empty confirmed section may prove absence;
 - empty partial/unknown section proves nothing.
+
+Для first release не требуются `User` entity, Auth, Role, Permission или
+session identity. Простого operator/confirmer identifier достаточно;
+многопользовательская модель не вводится.
+
+#### Обязательные first-release acceptance cases: целостность данных
+
+Проверить:
+
+1. Связанное изменение capability и completeness выполняется как одна business
+   transaction.
+2. Если capability mutation завершается ошибкой, transaction rollback сохраняет
+   исходное состояние: capability не остаётся частично изменённой, а
+   completeness не изменяется.
+3. Если section была `CONFIRMED_COMPLETE`, то после успешной semantic capability
+   mutation section становится `PARTIAL`.
+4. Подтверждающие metadata очищаются согласно утверждённой semantics.
+5. Idempotent/no-op mutation не создаёт ложную invalidation.
+6. Защита от дубликатов capability rows работает.
+7. Соблюдаются обычные structural invariants: FK, UNIQUE и CHECK.
+8. Соблюдается lifecycle/reference integrity, необходимая для first foundation
+   release.
+9. Не допускается half-applied state: capability изменена, а связанное
+   completeness state — нет, или completeness изменено без связанной capability
+   mutation.
+
+Single-operator не означает отсутствие business transactions. Эти cases
+проверяют обычную транзакционную целостность first release и не требуют
+concurrency/multi-user сценариев, locking или revision protocol.
 
 ### 5.3 Market eligibility
 
