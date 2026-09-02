@@ -17,10 +17,12 @@ from app.core.exceptions import (
     MaterialItemInUseError,
     MaterialItemNotFoundError,
     MaterialNotFoundError,
+    MaterialReclassificationBlockedError,
     ProductInUseError,
     ProductionFacilityNotFoundError,
     ProductNotFoundError,
     ProductTypeNotFoundError,
+    TechnologyTypeNotFoundError,
     TransportNotFoundError,
     TransportOwnershipTypeNotFoundError,
     TransportScopeNotFoundError,
@@ -184,6 +186,26 @@ async def material_in_use_handler(
 ) -> JSONResponse:
     return JSONResponse(
         status_code=409,
+        content={"detail": str(exc)},
+    )
+
+
+async def material_reclassification_blocked_handler(
+    request: Request,
+    exc: MaterialReclassificationBlockedError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={"detail": str(exc)},
+    )
+
+
+async def technology_type_not_found_handler(
+    request: Request,
+    exc: TechnologyTypeNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
         content={"detail": str(exc)},
     )
 

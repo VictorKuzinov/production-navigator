@@ -8,6 +8,7 @@ from app.core.exceptions import (
     MaterialGroupNotFoundError,
     MaterialInUseError,
     MaterialNotFoundError,
+    MaterialReclassificationBlockedError,
 )
 from app.schemas import MaterialCreate, MaterialUpdate
 from app.services.materials import MaterialService
@@ -123,6 +124,9 @@ async def test_update_group_validates_reference_and_resulting_unique_pair() -> N
     repository = SimpleNamespace(
         get_by_id=AsyncMock(return_value=material),
         get_by_group_and_grade=AsyncMock(return_value=None),
+        has_reclassification_capability_dependencies=AsyncMock(
+            return_value=False
+        ),
         update=AsyncMock(return_value=material),
     )
     references = SimpleNamespace(
@@ -137,6 +141,11 @@ async def test_update_group_validates_reference_and_resulting_unique_pair() -> N
     repository.get_by_group_and_grade.assert_awaited_once_with(
         "STEEL_ALLOY",
         "Сталь 45",
+    )
+    repository.has_reclassification_capability_dependencies.assert_awaited_once_with(
+        10,
+        "STEEL_CARBON",
+        "STEEL_ALLOY",
     )
     repository.update.assert_awaited_once_with(10, update)
 
@@ -187,6 +196,32 @@ async def test_update_rejects_unknown_replacement_group() -> None:
         )
 
     repository.get_by_group_and_grade.assert_not_awaited()
+    repository.update.assert_not_awaited()
+
+
+async def test_update_group_rejects_capability_resolution_dependency() -> None:
+    material = SimpleNamespace(
+        id=10,
+        group_code="STEEL_CARBON",
+        grade_name="Сталь 45",
+    )
+    update = MaterialUpdate(group_code="STEEL_ALLOY")
+    repository = SimpleNamespace(
+        get_by_id=AsyncMock(return_value=material),
+        get_by_group_and_grade=AsyncMock(return_value=None),
+        has_reclassification_capability_dependencies=AsyncMock(
+            return_value=True
+        ),
+        update=AsyncMock(),
+    )
+    references = SimpleNamespace(
+        get_material_group_by_code=AsyncMock(return_value=object())
+    )
+    service = build_service(repository, references)
+
+    with pytest.raises(MaterialReclassificationBlockedError):
+        await service.update_material(10, update)
+
     repository.update.assert_not_awaited()
 
 
@@ -268,12 +303,14 @@ async def test_delete_unused_material_succeeds() -> None:
     repository = SimpleNamespace(
         get_by_id=AsyncMock(return_value=material),
         has_material_items=AsyncMock(return_value=False),
+        has_profile_capabilities=AsyncMock(return_value=False),
         delete=AsyncMock(return_value=material),
     )
     service = build_service(repository, SimpleNamespace())
 
     assert await service.delete_material(10) is material
     repository.has_material_items.assert_awaited_once_with(10)
+    repository.has_profile_capabilities.assert_awaited_once_with(10)
     repository.delete.assert_awaited_once_with(10)
 
 
@@ -282,6 +319,22 @@ async def test_delete_material_with_item_is_rejected_before_delete() -> None:
     repository = SimpleNamespace(
         get_by_id=AsyncMock(return_value=material),
         has_material_items=AsyncMock(return_value=True),
+        delete=AsyncMock(),
+    )
+    service = build_service(repository, SimpleNamespace())
+
+    with pytest.raises(MaterialInUseError):
+        await service.delete_material(10)
+
+    repository.delete.assert_not_awaited()
+
+
+async def test_delete_material_with_profile_capability_is_rejected() -> None:
+    material = SimpleNamespace(id=10)
+    repository = SimpleNamespace(
+        get_by_id=AsyncMock(return_value=material),
+        has_material_items=AsyncMock(return_value=False),
+        has_profile_capabilities=AsyncMock(return_value=True),
         delete=AsyncMock(),
     )
     service = build_service(repository, SimpleNamespace())

@@ -7,6 +7,7 @@ from app.api.material_items import router as material_items_router
 from app.api.materials import router as materials_router
 from app.api.production_facilities import router as production_facilities_router
 from app.api.products import router as products_router
+from app.api.profile_capabilities import router as profile_capabilities_router
 from app.api.transports import router as transports_router
 from app.api.warehouses import router as warehouses_router
 
@@ -21,3 +22,4 @@ api_router.include_router(transports_router)
 api_router.include_router(materials_router)
 api_router.include_router(material_items_router)
 api_router.include_router(products_router)
+api_router.include_router(profile_capabilities_router)

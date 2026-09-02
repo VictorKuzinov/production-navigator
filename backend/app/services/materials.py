@@ -3,6 +3,7 @@ from app.core.exceptions import (
     MaterialGroupNotFoundError,
     MaterialInUseError,
     MaterialNotFoundError,
+    MaterialReclassificationBlockedError,
 )
 from app.models import Material
 from app.repositories import MaterialRepository, ReferenceRepository
@@ -93,6 +94,19 @@ class MaterialService:
                 material_id,
             )
 
+        if (
+            group_code != material.group_code
+            and await self.repository.has_reclassification_capability_dependencies(
+                material_id,
+                material.group_code,
+                group_code,
+            )
+        ):
+            raise MaterialReclassificationBlockedError(
+                f"Material {material_id} group cannot change while profile "
+                "material capabilities depend on the material or affected groups."
+            )
+
         updated = await self.repository.update(material_id, data)
         if updated is None:
             raise MaterialNotFoundError(
@@ -111,6 +125,11 @@ class MaterialService:
         if await self.repository.has_material_items(material_id):
             raise MaterialInUseError(
                 f"Material {material_id} is used by material items."
+            )
+
+        if await self.repository.has_profile_capabilities(material_id):
+            raise MaterialInUseError(
+                f"Material {material_id} is used by profile material capabilities."
             )
 
         deleted = await self.repository.delete(material_id)

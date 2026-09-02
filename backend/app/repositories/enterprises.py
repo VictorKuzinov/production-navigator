@@ -2,6 +2,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enterprises import EnterpriseProfile
+from app.models.profile_capabilities import (
+    ProfileSectionCode,
+    ProfileSectionCompleteness,
+    ProfileSectionState,
+)
 from app.schemas.enterprises import (
     EnterpriseProfileCreate,
     EnterpriseProfileUpdate,
@@ -16,7 +21,6 @@ class EnterpriseProfileRepository:
         self,
         profile_id: int,
     ) -> EnterpriseProfile | None:
-        
         statement = select(EnterpriseProfile).where(EnterpriseProfile.id == profile_id)
         result = await self.session.execute(statement)
 
@@ -73,10 +77,23 @@ class EnterpriseProfileRepository:
         profile = EnterpriseProfile(
             **data.model_dump()
         )
+        profile.capability_sections = [
+            ProfileSectionCompleteness(
+                section_code=section_code,
+                state=ProfileSectionState.UNKNOWN,
+                confirmed_at=None,
+                confirmed_by=None,
+            )
+            for section_code in ProfileSectionCode
+        ]
 
         self.session.add(profile)
 
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            raise
         await self.session.refresh(profile)
 
         return profile

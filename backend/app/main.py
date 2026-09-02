@@ -18,10 +18,12 @@ from app.core.exception_handlers import (
     material_item_in_use_handler,
     material_item_not_found_handler,
     material_not_found_handler,
+    material_reclassification_blocked_handler,
     product_in_use_handler,
     product_not_found_handler,
     product_type_not_found_handler,
     production_facility_not_found_handler,
+    technology_type_not_found_handler,
     transport_not_found_handler,
     transport_ownership_type_not_found_handler,
     transport_scope_not_found_handler,
@@ -45,10 +47,12 @@ from app.core.exceptions import (
     MaterialItemInUseError,
     MaterialItemNotFoundError,
     MaterialNotFoundError,
+    MaterialReclassificationBlockedError,
     ProductInUseError,
     ProductionFacilityNotFoundError,
     ProductNotFoundError,
     ProductTypeNotFoundError,
+    TechnologyTypeNotFoundError,
     TransportNotFoundError,
     TransportOwnershipTypeNotFoundError,
     TransportScopeNotFoundError,
@@ -140,6 +144,16 @@ app.add_exception_handler(
 app.add_exception_handler(
     MaterialInUseError,
     material_in_use_handler,
+)
+
+app.add_exception_handler(
+    MaterialReclassificationBlockedError,
+    material_reclassification_blocked_handler,
+)
+
+app.add_exception_handler(
+    TechnologyTypeNotFoundError,
+    technology_type_not_found_handler,
 )
 
 app.add_exception_handler(

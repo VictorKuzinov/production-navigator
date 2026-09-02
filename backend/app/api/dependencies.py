@@ -11,6 +11,9 @@ from app.repositories import (
     MaterialRepository,
     ProductionFacilityRepository,
     ProductRepository,
+    ProfileMaterialCapabilityRepository,
+    ProfileSectionCompletenessRepository,
+    ProfileTechnologyCapabilityRepository,
     ReferenceRepository,
     TransportRepository,
     WarehouseRepository,
@@ -23,6 +26,7 @@ from app.services.material_items import MaterialItemService
 from app.services.materials import MaterialService
 from app.services.production_facilities import ProductionFacilityService
 from app.services.products import ProductService
+from app.services.profile_capabilities import ProfileCapabilityService
 from app.services.transports import TransportService
 from app.services.warehouses import WarehouseService
 
@@ -40,6 +44,20 @@ def get_enterprise_service(
     return EnterpriseProfileService(
         repository,
         reference_repository,
+    )
+
+
+def get_profile_capability_service(
+    session: SessionDep,
+) -> ProfileCapabilityService:
+    return ProfileCapabilityService(
+        session=session,
+        technology_repository=ProfileTechnologyCapabilityRepository(session),
+        material_capability_repository=ProfileMaterialCapabilityRepository(session),
+        section_repository=ProfileSectionCompletenessRepository(session),
+        enterprise_repository=EnterpriseProfileRepository(session),
+        reference_repository=ReferenceRepository(session),
+        material_repository=MaterialRepository(session),
     )
 
 

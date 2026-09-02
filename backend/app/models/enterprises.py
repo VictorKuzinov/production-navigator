@@ -33,6 +33,11 @@ if TYPE_CHECKING:
         Warehouse,
     )
     from app.models.products import Product
+    from app.models.profile_capabilities import (
+        ProfileMaterialCapability,
+        ProfileSectionCompleteness,
+        ProfileTechnologyCapability,
+    )
 
 
 class CertificateType(Base, PNCBaseReference):
@@ -164,6 +169,23 @@ class EnterpriseProfile(Base):
     okveds: Mapped[list["EnterpriseOKVED"]] = relationship(
         back_populates="profile",
         cascade="all, delete-orphan",
+    )
+    technology_capabilities: Mapped[list["ProfileTechnologyCapability"]] = (
+        relationship(
+            back_populates="profile",
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+        )
+    )
+    material_capabilities: Mapped[list["ProfileMaterialCapability"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    capability_sections: Mapped[list["ProfileSectionCompleteness"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
 

@@ -83,6 +83,11 @@ class MaterialInUseError(Exception):
     pass
 
 
+class MaterialReclassificationBlockedError(Exception):
+    """Material group change would alter capability resolution."""
+    pass
+
+
 class MaterialItemNotFoundError(Exception):
     """Material item not found."""
     pass
@@ -125,4 +130,14 @@ class DuplicateProductError(Exception):
 
 class ProductInUseError(Exception):
     """Product is referenced by production orders."""
+    pass
+
+
+class TechnologyTypeNotFoundError(Exception):
+    """Technology type not found."""
+    pass
+
+
+class CapabilitySectionIntegrityError(Exception):
+    """A required profile capability section row is missing."""
     pass

@@ -5,6 +5,11 @@ from app.repositories.material_items import MaterialItemRepository
 from app.repositories.materials import MaterialRepository
 from app.repositories.production_facilities import ProductionFacilityRepository
 from app.repositories.products import ProductRepository
+from app.repositories.profile_capabilities import (
+    ProfileMaterialCapabilityRepository,
+    ProfileSectionCompletenessRepository,
+    ProfileTechnologyCapabilityRepository,
+)
 from app.repositories.references import ReferenceRepository
 from app.repositories.transports import TransportRepository
 from app.repositories.warehouses import WarehouseRepository
@@ -18,6 +23,9 @@ __all__ = [
     "MaterialRepository",
     "MaterialItemRepository",
     "ProductRepository",
+    "ProfileTechnologyCapabilityRepository",
+    "ProfileMaterialCapabilityRepository",
+    "ProfileSectionCompletenessRepository",
     "TransportRepository",
     "WarehouseRepository",
 ]

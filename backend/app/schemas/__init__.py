@@ -26,6 +26,14 @@ from app.schemas.production_facilities import (
     ProductionFacilityUpdate,
 )
 from app.schemas.products import ProductCreate, ProductRead, ProductUpdate
+from app.schemas.profile_capabilities import (
+    CapabilityStateUpdate,
+    ProfileMaterialCapabilityRead,
+    ProfileSectionCompletenessRead,
+    ProfileSectionConfirmation,
+    ProfileSectionStateUpdate,
+    ProfileTechnologyCapabilityRead,
+)
 from app.schemas.transports import (
     TransportCreate,
     TransportRead,
@@ -60,6 +68,12 @@ __all__ = [
     "ProductCreate",
     "ProductRead",
     "ProductUpdate",
+    "CapabilityStateUpdate",
+    "ProfileTechnologyCapabilityRead",
+    "ProfileMaterialCapabilityRead",
+    "ProfileSectionCompletenessRead",
+    "ProfileSectionStateUpdate",
+    "ProfileSectionConfirmation",
     "TransportCreate",
     "TransportRead",
     "TransportUpdate",

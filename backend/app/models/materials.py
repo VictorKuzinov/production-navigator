@@ -1,5 +1,6 @@
-# materiald.py
-## Стандартные библиотеки
+# materials.py
+# Стандартные библиотеки
+from typing import TYPE_CHECKING
 
 # Сторонние пакеты
 from sqlalchemy import Float, ForeignKey, Index, Integer, String, UniqueConstraint
@@ -9,12 +10,19 @@ from app.db.database import Base
 from app.models.base_reference import PNCBaseReference
 from app.models.products import Product
 
+if TYPE_CHECKING:
+    from app.models.profile_capabilities import ProfileMaterialCapability
+
 
 class MaterialGroup(Base, PNCBaseReference):
     __tablename__ = "pnc_material_group"
 
     materials: Mapped[list["Material"]] = relationship(
         back_populates="group_ref"
+    )
+    profile_capabilities: Mapped[list["ProfileMaterialCapability"]] = relationship(
+        back_populates="material_group",
+        passive_deletes=True,
     )
 
 
@@ -68,6 +76,10 @@ class Material(Base):
     items: Mapped[list["MaterialItem"]] = relationship(
         back_populates="material",
         cascade="all, delete-orphan"
+    )
+    profile_capabilities: Mapped[list["ProfileMaterialCapability"]] = relationship(
+        back_populates="material",
+        passive_deletes=True,
     )
 
 

@@ -32,6 +32,14 @@ from app.models.productions import (
     WarehouseType,
 )
 from app.models.products import Product, ProductType
+from app.models.profile_capabilities import (
+    CapabilityState,
+    ProfileMaterialCapability,
+    ProfileSectionCode,
+    ProfileSectionCompleteness,
+    ProfileSectionState,
+    ProfileTechnologyCapability,
+)
 
 __all__ = [
     "TechnologyType",
@@ -64,4 +72,10 @@ __all__ = [
     "Transport",
     "OKVED",
     "EnterpriseOKVED",
+    "CapabilityState",
+    "ProfileSectionCode",
+    "ProfileSectionState",
+    "ProfileTechnologyCapability",
+    "ProfileMaterialCapability",
+    "ProfileSectionCompleteness",
 ]

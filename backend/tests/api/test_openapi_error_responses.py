@@ -5,7 +5,7 @@ from app.main import app
 type OperationKey = tuple[str, str]
 type OpenAPISchema = dict[str, Any]
 
-HTTP_METHODS = {"get", "post", "patch", "delete"}
+HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
 CUSTOM_ERROR_STATUSES = {"404", "409"}
 ERROR_RESPONSE_REF = {"$ref": "#/components/schemas/ErrorResponse"}
 
@@ -81,6 +81,58 @@ EXPECTED_CUSTOM_ERROR_RESPONSES: dict[OperationKey, set[str]] = {
     ("get", "/api/v1/products/{product_id}"): {"404"},
     ("patch", "/api/v1/products/{product_id}"): {"404", "409"},
     ("delete", "/api/v1/products/{product_id}"): {"404", "409"},
+    (
+        "get",
+        "/api/v1/enterprises/{profile_id}/technology-capabilities",
+    ): {"404"},
+    (
+        "put",
+        "/api/v1/enterprises/{profile_id}/technology-capabilities/"
+        "{technology_code}",
+    ): {"404"},
+    (
+        "delete",
+        "/api/v1/enterprises/{profile_id}/technology-capabilities/"
+        "{technology_code}",
+    ): {"404"},
+    (
+        "get",
+        "/api/v1/enterprises/{profile_id}/material-capabilities",
+    ): {"404"},
+    (
+        "put",
+        "/api/v1/enterprises/{profile_id}/material-capabilities/groups/"
+        "{group_code}",
+    ): {"404"},
+    (
+        "delete",
+        "/api/v1/enterprises/{profile_id}/material-capabilities/groups/"
+        "{group_code}",
+    ): {"404"},
+    (
+        "put",
+        "/api/v1/enterprises/{profile_id}/material-capabilities/materials/"
+        "{material_id}",
+    ): {"404"},
+    (
+        "delete",
+        "/api/v1/enterprises/{profile_id}/material-capabilities/materials/"
+        "{material_id}",
+    ): {"404"},
+    (
+        "get",
+        "/api/v1/enterprises/{profile_id}/capability-sections",
+    ): {"404"},
+    (
+        "put",
+        "/api/v1/enterprises/{profile_id}/capability-sections/"
+        "{section_code}/state",
+    ): {"404"},
+    (
+        "put",
+        "/api/v1/enterprises/{profile_id}/capability-sections/"
+        "{section_code}/confirmation",
+    ): {"404"},
 }
 
 
@@ -142,4 +194,9 @@ def test_openapi_custom_error_metadata_preserves_existing_responses() -> None:
 
     for method, path in EXPECTED_CUSTOM_ERROR_RESPONSES:
         response_statuses = set(first_schema["paths"][path][method]["responses"])
-        assert {"200", "422"} <= response_statuses
+        success_status = (
+            "204"
+            if method == "delete" and "capabilities" in path
+            else "200"
+        )
+        assert {success_status, "422"} <= response_statuses

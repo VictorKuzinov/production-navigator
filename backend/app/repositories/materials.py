@@ -1,7 +1,8 @@
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Material, MaterialItem
+from app.models.profile_capabilities import ProfileMaterialCapability
 from app.schemas import MaterialCreate, MaterialUpdate
 
 
@@ -45,6 +46,36 @@ class MaterialRepository:
         )
         result = await self.session.execute(statement)
 
+        return result.scalar_one_or_none() is not None
+
+    async def has_profile_capabilities(self, material_id: int) -> bool:
+        statement = (
+            select(ProfileMaterialCapability.id)
+            .where(ProfileMaterialCapability.material_id == material_id)
+            .limit(1)
+        )
+        result = await self.session.execute(statement)
+        return result.scalar_one_or_none() is not None
+
+    async def has_reclassification_capability_dependencies(
+        self,
+        material_id: int,
+        old_group_code: str,
+        new_group_code: str,
+    ) -> bool:
+        statement = (
+            select(ProfileMaterialCapability.id)
+            .where(
+                or_(
+                    ProfileMaterialCapability.material_id == material_id,
+                    ProfileMaterialCapability.material_group_code.in_(
+                        [old_group_code, new_group_code]
+                    ),
+                )
+            )
+            .limit(1)
+        )
+        result = await self.session.execute(statement)
         return result.scalar_one_or_none() is not None
 
     async def create(self, data: MaterialCreate) -> Material:

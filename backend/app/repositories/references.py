@@ -11,6 +11,7 @@ from app.models import (
     MaterialGroup,
     ProductType,
     Region,
+    TechnologyType,
     TransportOwnershipType,
     TransportScope,
     TransportType,
@@ -62,6 +63,12 @@ class ReferenceRepository:
         code: str,
     ) -> MaterialGroup | None:
         return await self._get_by_code(MaterialGroup, code)
+
+    async def get_technology_type_by_code(
+        self,
+        code: str,
+    ) -> TechnologyType | None:
+        return await self._get_by_code(TechnologyType, code)
 
     async def get_material_form_by_code(
         self,
