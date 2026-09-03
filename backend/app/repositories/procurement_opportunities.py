@@ -55,6 +55,17 @@ class ProcurementOpportunityRepository:
         result = await self.session.execute(statement)
         return result.scalar_one_or_none()
 
+    async def get_by_id(self, opportunity_id: int) -> ProcurementOpportunity | None:
+        statement = (
+            select(ProcurementOpportunity)
+            .where(ProcurementOpportunity.id == opportunity_id)
+            .options(*self._load_options())
+            .execution_options(autoflush=False)
+        )
+        with self.session.no_autoflush:
+            result = await self.session.execute(statement)
+        return result.scalar_one_or_none()
+
     async def get_by_identities(
         self,
         identities: list[ProcurementOpportunityIdentity],

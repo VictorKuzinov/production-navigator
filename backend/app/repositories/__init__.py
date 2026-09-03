@@ -3,6 +3,9 @@ from app.repositories.equipments import EquipmentRepository
 from app.repositories.lifting_equipments import LiftingEquipmentRepository
 from app.repositories.material_items import MaterialItemRepository
 from app.repositories.materials import MaterialRepository
+from app.repositories.procurement_matching import (
+    ProfileMatchingProjectionRepository,
+)
 from app.repositories.procurement_opportunities import (
     ProcurementOpportunityRepository,
 )
@@ -30,6 +33,7 @@ __all__ = [
     "ProfileMaterialCapabilityRepository",
     "ProfileSectionCompletenessRepository",
     "ProcurementOpportunityRepository",
+    "ProfileMatchingProjectionRepository",
     "TransportRepository",
     "WarehouseRepository",
 ]

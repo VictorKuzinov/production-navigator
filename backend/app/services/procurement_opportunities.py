@@ -31,6 +31,178 @@ from app.schemas.procurement_opportunities import (
 )
 
 
+def _stateful_collection(
+    opportunity: ProcurementOpportunity,
+    state_value: object,
+    values: list[dict[str, Any]] | list[str],
+    field_name: str,
+) -> list[dict[str, Any]] | list[str] | None:
+    try:
+        state = RequirementCollectionState(state_value)
+    except ValueError as exc:
+        raise ProcurementOpportunityIntegrityError(
+            f"Stored opportunity ({opportunity.source}, "
+            f"{opportunity.external_id}) has invalid {field_name} state."
+        ) from exc
+    if state == RequirementCollectionState.UNKNOWN:
+        if values:
+            raise ProcurementOpportunityIntegrityError(
+                f"Stored opportunity ({opportunity.source}, "
+                f"{opportunity.external_id}) has UNKNOWN {field_name} "
+                "with child rows."
+            )
+        return None
+    return values
+
+
+def _decimal_for_input(value: Decimal | None, places: int) -> str | None:
+    if value is None:
+        return None
+    return f"{value:.{places}f}"
+
+
+def _deadline_from_columns(
+    opportunity: ProcurementOpportunity,
+    date_value: date | None,
+    datetime_value: datetime | None,
+    field_name: str,
+) -> date | datetime | None:
+    if date_value is not None and datetime_value is not None:
+        raise ProcurementOpportunityIntegrityError(
+            f"Stored opportunity ({opportunity.source}, "
+            f"{opportunity.external_id}) has both physical columns for "
+            f"{field_name}."
+        )
+    if datetime_value is not None:
+        if datetime_value.tzinfo is None:
+            datetime_value = datetime_value.replace(tzinfo=UTC)
+        return datetime_value.astimezone(UTC)
+    return date_value
+
+
+def canonical_opportunity_from_aggregate(
+    opportunity: ProcurementOpportunity,
+) -> PreparedOpportunityInput:
+    """Project the stored aggregate through the one canonical ingestion contract."""
+    product_types = _stateful_collection(
+        opportunity,
+        opportunity.product_type_codes_state,
+        [item.product_type_code for item in opportunity.product_types],
+        "product_type_codes",
+    )
+    materials = _stateful_collection(
+        opportunity,
+        opportunity.material_requirements_state,
+        [
+            {
+                "material_group_code": item.material_group_code,
+                "material_id": item.material_id,
+                "requirement_strength": item.requirement_strength,
+            }
+            for item in opportunity.material_requirements
+        ],
+        "material_requirements",
+    )
+    technologies = _stateful_collection(
+        opportunity,
+        opportunity.technology_requirements_state,
+        [
+            {
+                "technology_code": item.technology_code,
+                "requirement_strength": item.requirement_strength,
+            }
+            for item in opportunity.technology_requirements
+        ],
+        "technology_requirements",
+    )
+    equipment = _stateful_collection(
+        opportunity,
+        opportunity.equipment_requirements_state,
+        [
+            {
+                "equipment_type_code": item.equipment_type_code,
+                "cnc": item.cnc,
+                "axes": item.axes,
+                "working_zone_x_mm": _decimal_for_input(
+                    item.working_zone_x_mm,
+                    3,
+                ),
+                "working_zone_y_mm": _decimal_for_input(
+                    item.working_zone_y_mm,
+                    3,
+                ),
+                "working_zone_z_mm": _decimal_for_input(
+                    item.working_zone_z_mm,
+                    3,
+                ),
+                "diameter_mm": _decimal_for_input(item.diameter_mm, 3),
+                "requirement_strength": item.requirement_strength,
+            }
+            for item in opportunity.equipment_requirements
+        ],
+        "equipment_requirements",
+    )
+    certificates = _stateful_collection(
+        opportunity,
+        opportunity.required_certificates_state,
+        [
+            {
+                "certificate_type_code": item.certificate_type_code,
+                "requirement_strength": item.requirement_strength,
+                "required_by": item.required_by,
+                "valid_through": item.valid_through,
+            }
+            for item in opportunity.certificate_requirements
+        ],
+        "required_certificates",
+    )
+
+    payload = {
+        "source": opportunity.source,
+        "external_id": opportunity.external_id,
+        "procurement_number": opportunity.procurement_number,
+        "title": opportunity.title,
+        "customer": opportunity.customer,
+        "source_url": opportunity.source_url,
+        "status": opportunity.status,
+        "procurement_type": opportunity.procurement_type,
+        "okpd2_codes": opportunity.okpd2_codes,
+        "product_type_codes": product_types,
+        "price_amount": _decimal_for_input(opportunity.price_amount, 2),
+        "price_currency": opportunity.price_currency,
+        "region_code": opportunity.region_code,
+        "quantity": _decimal_for_input(opportunity.quantity, 6),
+        "unit": opportunity.unit,
+        "application_deadline": _deadline_from_columns(
+            opportunity,
+            opportunity.application_deadline_date,
+            opportunity.application_deadline_at,
+            "application_deadline",
+        ),
+        "execution_deadline": _deadline_from_columns(
+            opportunity,
+            opportunity.execution_deadline_date,
+            opportunity.execution_deadline_at,
+            "execution_deadline",
+        ),
+        "material_requirements": materials,
+        "technology_requirements": technologies,
+        "equipment_requirements": equipment,
+        "dimensional_mass_requirements": opportunity.dimensional_mass_requirements,
+        "quality_requirements": opportunity.quality_requirements,
+        "required_certificates": certificates,
+    }
+    try:
+        return canonicalize_opportunity(
+            PreparedOpportunityInput.model_validate(payload)
+        )
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise ProcurementOpportunityIntegrityError(
+            f"Stored opportunity ({opportunity.source}, "
+            f"{opportunity.external_id}) cannot be projected canonically."
+        ) from exc
+
+
 class ProcurementOpportunityIngestionService:
     def __init__(
         self,
@@ -69,7 +241,7 @@ class ProcurementOpportunityIngestionService:
                     created += 1
                     continue
 
-                saved_record = self._canonical_from_aggregate(opportunity)
+                saved_record = canonical_opportunity_from_aggregate(opportunity)
                 if canonical_payload_json(saved_record) == canonical_payload_json(
                     record
                 ):
@@ -256,175 +428,8 @@ class ProcurementOpportunityIngestionService:
         if issues:
             raise ProcurementOpportunityReferenceError(tuple(sorted(issues)))
 
-    @staticmethod
-    def _stateful_collection(
-        opportunity: ProcurementOpportunity,
-        state_value: object,
-        values: list[dict[str, Any]] | list[str],
-        field_name: str,
-    ) -> list[dict[str, Any]] | list[str] | None:
-        try:
-            state = RequirementCollectionState(state_value)
-        except ValueError as exc:
-            raise ProcurementOpportunityIntegrityError(
-                f"Stored opportunity ({opportunity.source}, "
-                f"{opportunity.external_id}) has invalid {field_name} state."
-            ) from exc
-        if state == RequirementCollectionState.UNKNOWN:
-            if values:
-                raise ProcurementOpportunityIntegrityError(
-                    f"Stored opportunity ({opportunity.source}, "
-                    f"{opportunity.external_id}) has UNKNOWN {field_name} "
-                    "with child rows."
-                )
-            return None
-        return values
-
-    @staticmethod
-    def _decimal_for_input(value: Decimal | None, places: int) -> str | None:
-        if value is None:
-            return None
-        return f"{value:.{places}f}"
-
-    @staticmethod
-    def _deadline_from_columns(
-        opportunity: ProcurementOpportunity,
-        date_value: date | None,
-        datetime_value: datetime | None,
-        field_name: str,
-    ) -> date | datetime | None:
-        if date_value is not None and datetime_value is not None:
-            raise ProcurementOpportunityIntegrityError(
-                f"Stored opportunity ({opportunity.source}, "
-                f"{opportunity.external_id}) has both physical columns for "
-                f"{field_name}."
-            )
-        if datetime_value is not None:
-            if datetime_value.tzinfo is None:
-                datetime_value = datetime_value.replace(tzinfo=UTC)
-            return datetime_value.astimezone(UTC)
-        return date_value
-
     def _canonical_from_aggregate(
         self,
         opportunity: ProcurementOpportunity,
     ) -> PreparedOpportunityInput:
-        product_types = self._stateful_collection(
-            opportunity,
-            opportunity.product_type_codes_state,
-            [item.product_type_code for item in opportunity.product_types],
-            "product_type_codes",
-        )
-        materials = self._stateful_collection(
-            opportunity,
-            opportunity.material_requirements_state,
-            [
-                {
-                    "material_group_code": item.material_group_code,
-                    "material_id": item.material_id,
-                    "requirement_strength": item.requirement_strength,
-                }
-                for item in opportunity.material_requirements
-            ],
-            "material_requirements",
-        )
-        technologies = self._stateful_collection(
-            opportunity,
-            opportunity.technology_requirements_state,
-            [
-                {
-                    "technology_code": item.technology_code,
-                    "requirement_strength": item.requirement_strength,
-                }
-                for item in opportunity.technology_requirements
-            ],
-            "technology_requirements",
-        )
-        equipment = self._stateful_collection(
-            opportunity,
-            opportunity.equipment_requirements_state,
-            [
-                {
-                    "equipment_type_code": item.equipment_type_code,
-                    "cnc": item.cnc,
-                    "axes": item.axes,
-                    "working_zone_x_mm": self._decimal_for_input(
-                        item.working_zone_x_mm,
-                        3,
-                    ),
-                    "working_zone_y_mm": self._decimal_for_input(
-                        item.working_zone_y_mm,
-                        3,
-                    ),
-                    "working_zone_z_mm": self._decimal_for_input(
-                        item.working_zone_z_mm,
-                        3,
-                    ),
-                    "diameter_mm": self._decimal_for_input(item.diameter_mm, 3),
-                    "requirement_strength": item.requirement_strength,
-                }
-                for item in opportunity.equipment_requirements
-            ],
-            "equipment_requirements",
-        )
-        certificates = self._stateful_collection(
-            opportunity,
-            opportunity.required_certificates_state,
-            [
-                {
-                    "certificate_type_code": item.certificate_type_code,
-                    "requirement_strength": item.requirement_strength,
-                    "required_by": item.required_by,
-                    "valid_through": item.valid_through,
-                }
-                for item in opportunity.certificate_requirements
-            ],
-            "required_certificates",
-        )
-
-        payload = {
-            "source": opportunity.source,
-            "external_id": opportunity.external_id,
-            "procurement_number": opportunity.procurement_number,
-            "title": opportunity.title,
-            "customer": opportunity.customer,
-            "source_url": opportunity.source_url,
-            "status": opportunity.status,
-            "procurement_type": opportunity.procurement_type,
-            "okpd2_codes": opportunity.okpd2_codes,
-            "product_type_codes": product_types,
-            "price_amount": self._decimal_for_input(opportunity.price_amount, 2),
-            "price_currency": opportunity.price_currency,
-            "region_code": opportunity.region_code,
-            "quantity": self._decimal_for_input(opportunity.quantity, 6),
-            "unit": opportunity.unit,
-            "application_deadline": self._deadline_from_columns(
-                opportunity,
-                opportunity.application_deadline_date,
-                opportunity.application_deadline_at,
-                "application_deadline",
-            ),
-            "execution_deadline": self._deadline_from_columns(
-                opportunity,
-                opportunity.execution_deadline_date,
-                opportunity.execution_deadline_at,
-                "execution_deadline",
-            ),
-            "material_requirements": materials,
-            "technology_requirements": technologies,
-            "equipment_requirements": equipment,
-            "dimensional_mass_requirements": (
-                opportunity.dimensional_mass_requirements
-            ),
-            "quality_requirements": opportunity.quality_requirements,
-            "required_certificates": certificates,
-        }
-        try:
-            return canonicalize_opportunity(
-                PreparedOpportunityInput.model_validate(payload)
-            )
-        except (ValidationError, TypeError, ValueError) as exc:
-            raise ProcurementOpportunityIntegrityError(
-                f"Stored opportunity ({opportunity.source}, "
-                f"{opportunity.external_id}) cannot be projected canonically."
-            ) from exc
+        return canonical_opportunity_from_aggregate(opportunity)
