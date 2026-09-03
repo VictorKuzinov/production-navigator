@@ -20,6 +20,17 @@ from app.models.materials import (
 from app.models.okved import OKVED
 from app.models.orders import OrderType, ProductionOrder
 from app.models.pnc_reference import TechnologyType
+from app.models.procurement_opportunities import (
+    ProcurementCertificateRequirement,
+    ProcurementEquipmentRequirement,
+    ProcurementMaterialRequirement,
+    ProcurementOpportunity,
+    ProcurementOpportunityProductType,
+    ProcurementOpportunityStatus,
+    ProcurementTechnologyRequirement,
+    RequirementCollectionState,
+    RequirementStrength,
+)
 from app.models.productions import (
     CraneType,
     LiftingEquipment,
@@ -78,4 +89,13 @@ __all__ = [
     "ProfileTechnologyCapability",
     "ProfileMaterialCapability",
     "ProfileSectionCompleteness",
+    "ProcurementOpportunityStatus",
+    "RequirementStrength",
+    "RequirementCollectionState",
+    "ProcurementOpportunity",
+    "ProcurementOpportunityProductType",
+    "ProcurementMaterialRequirement",
+    "ProcurementTechnologyRequirement",
+    "ProcurementEquipmentRequirement",
+    "ProcurementCertificateRequirement",
 ]

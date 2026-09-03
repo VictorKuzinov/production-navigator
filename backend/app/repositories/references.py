@@ -1,8 +1,8 @@
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
+    CertificateType,
     CompanySize,
     CraneType,
     EquipmentType,
@@ -25,9 +25,9 @@ class ReferenceRepository:
         self.session = session
 
     async def _get_by_code(
-            self,
-            model: type[PNCBaseReference],
-            code: str,
+        self,
+        model: type[PNCBaseReference],
+        code: str,
     ) -> PNCBaseReference | None:
         statement = select(model).where(model.code == code)
         result = await self.session.execute(statement)
@@ -35,20 +35,26 @@ class ReferenceRepository:
         return result.scalar_one_or_none()
 
     async def get_region_by_code(
-            self,
-            code: str,
+        self,
+        code: str,
     ) -> Region | None:
         return await self._get_by_code(Region, code)
 
+    async def get_certificate_type_by_code(
+        self,
+        code: str,
+    ) -> CertificateType | None:
+        return await self._get_by_code(CertificateType, code)
+
     async def get_company_size_by_code(
-            self,
-            code: str,
+        self,
+        code: str,
     ) -> CompanySize | None:
         return await self._get_by_code(CompanySize, code)
 
-    async def get_industry_by_code( 
-            self,
-            code: str,
+    async def get_industry_by_code(
+        self,
+        code: str,
     ) -> Industry | None:
         return await self._get_by_code(Industry, code)
 

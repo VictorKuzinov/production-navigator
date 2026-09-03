@@ -141,3 +141,37 @@ class TechnologyTypeNotFoundError(Exception):
 class CapabilitySectionIntegrityError(Exception):
     """A required profile capability section row is missing."""
     pass
+
+
+class ProcurementOpportunityBatchConflictError(Exception):
+    """One batch contains different payloads for the same source identity."""
+
+    def __init__(
+        self,
+        conflicts: tuple[tuple[str, str, tuple[int, ...]], ...],
+    ):
+        self.conflicts = conflicts
+        details = "; ".join(
+            f"({source}, {external_id}) at rows {list(positions)}"
+            for source, external_id, positions in conflicts
+        )
+        super().__init__(f"Conflicting procurement opportunity payloads: {details}.")
+
+
+class ProcurementOpportunityReferenceError(Exception):
+    """Prepared opportunities contain missing or mismatched references."""
+
+    def __init__(
+        self,
+        issues: tuple[tuple[str, str, str], ...],
+    ):
+        self.issues = issues
+        details = "; ".join(
+            f"({source}, {external_id}): {reason}"
+            for source, external_id, reason in issues
+        )
+        super().__init__(f"Invalid procurement opportunity references: {details}.")
+
+
+class ProcurementOpportunityIntegrityError(Exception):
+    """A stored procurement opportunity violates aggregate integrity."""

@@ -20,6 +20,18 @@ from app.schemas.material_items import (
     MaterialItemUpdate,
 )
 from app.schemas.materials import MaterialCreate, MaterialRead, MaterialUpdate
+from app.schemas.procurement_opportunities import (
+    CertificateRequirementInput,
+    DimensionalMassRequirementInput,
+    EquipmentRequirementInput,
+    MaterialRequirementInput,
+    PreparedOpportunityDocument,
+    PreparedOpportunityInput,
+    ProcurementOpportunityIngestionResult,
+    ProcurementOpportunityRead,
+    QualityRequirementInput,
+    TechnologyRequirementInput,
+)
 from app.schemas.production_facilities import (
     ProductionFacilityCreate,
     ProductionFacilityRead,
@@ -74,6 +86,16 @@ __all__ = [
     "ProfileSectionCompletenessRead",
     "ProfileSectionStateUpdate",
     "ProfileSectionConfirmation",
+    "MaterialRequirementInput",
+    "TechnologyRequirementInput",
+    "EquipmentRequirementInput",
+    "DimensionalMassRequirementInput",
+    "QualityRequirementInput",
+    "CertificateRequirementInput",
+    "PreparedOpportunityInput",
+    "PreparedOpportunityDocument",
+    "ProcurementOpportunityRead",
+    "ProcurementOpportunityIngestionResult",
     "TransportCreate",
     "TransportRead",
     "TransportUpdate",

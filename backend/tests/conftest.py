@@ -15,6 +15,7 @@ from app.db.database import Base
 from app.db.dependencies import get_session
 from app.main import app
 from app.models import (
+    CertificateType,
     CompanySize,
     CraneType,
     EnterpriseProfile,
@@ -22,6 +23,7 @@ from app.models import (
     MaterialForm,
     MaterialGroup,
     ProductionFacility,
+    ProductType,
     Region,
     TechnologyType,
     TransportOwnershipType,
@@ -32,6 +34,7 @@ from app.models import (
 )
 
 TEST_DATABASE_URL = "sqlite+aiosqlite://"
+
 
 def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record) -> None:
     cursor = dbapi_connection.cursor()
@@ -84,6 +87,38 @@ async def reference_rows(db_session: AsyncSession) -> dict[str, str]:
             ics_section="03.100.10",
             ref_system="ISO 3166-2",
             ref_code="RU-SVE",
+            description="Test fixture for a documented PNC value.",
+        ),
+        ProductType(
+            code="ASSEMBLY_UNIT",
+            name_ru="Сборочная единица",
+            ics_section="25.040.01",
+            ref_system="eCl@ss",
+            ref_code="23-01-01-92",
+            description="Test fixture for a documented PNC value.",
+        ),
+        ProductType(
+            code="STANDARD_PARTS",
+            name_ru="Стандартные изделия",
+            ics_section="25.040.01",
+            ref_system="eCl@ss",
+            ref_code="23-01-01-93",
+            description="Test fixture for a documented PNC value.",
+        ),
+        CertificateType(
+            code="PNC_CERT_ISO9001",
+            name_ru="Сертификат ISO 9001",
+            ics_section="03.120.10",
+            ref_system="ISO",
+            ref_code="9001:2015",
+            description="Test fixture for a documented PNC value.",
+        ),
+        CertificateType(
+            code="PNC_CERT_ISO14001",
+            name_ru="Сертификат ISO 14001",
+            ics_section="13.020.10",
+            ref_system="ISO",
+            ref_code="14001:2015",
             description="Test fixture for a documented PNC value.",
         ),
         EquipmentType(
@@ -229,6 +264,10 @@ async def reference_rows(db_session: AsyncSession) -> dict[str, str]:
     return {
         "company_size": "PNC_SIZE_SMALL",
         "region": "PNC_REG_66",
+        "product_type": "ASSEMBLY_UNIT",
+        "other_product_type": "STANDARD_PARTS",
+        "certificate_type": "PNC_CERT_ISO9001",
+        "other_certificate_type": "PNC_CERT_ISO14001",
         "equipment_type": "TURNING",
         "other_equipment_type": "MILLING",
         "technology_type": "TURNING",

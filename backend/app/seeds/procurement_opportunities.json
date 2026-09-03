@@ -1,0 +1,2089 @@
+{
+  "opportunities": [
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-001",
+      "procurement_number": "PNC-2026-0001",
+      "title": "Подготовленная производственная возможность № 1",
+      "customer": "Тестовый заказчик 1",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "FINISHED_GOOD"
+      ],
+      "price_amount": "101250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "10.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-02T01:30:00+05:00",
+      "execution_deadline": "2026-12-02",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "TURNING",
+          "cnc": false,
+          "axes": 2,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "101.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO9001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-002",
+      "procurement_number": "PNC-2026-0002",
+      "title": "Подготовленная производственная возможность № 2",
+      "customer": "Тестовый заказчик 2",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.73.30.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "102500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "20.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-03",
+      "execution_deadline": "2026-12-03T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "MACHINING",
+          "requirement_strength": "MANDATORY"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 3,
+          "maximum_ra_um": null,
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "PREFERRED"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-003",
+      "procurement_number": "PNC-2026-0003",
+      "title": "Подготовленная производственная возможность № 3",
+      "customer": "Тестовый заказчик 3",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "103750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "30.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-04T03:30:00+05:00",
+      "execution_deadline": "2026-12-04",
+      "material_requirements": [
+        {
+          "material_group_code": "STEEL_STAINLESS",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "503.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "83.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-004",
+      "procurement_number": "PNC-2026-0004",
+      "title": "Подготовленная производственная возможность № 4",
+      "customer": "Тестовый заказчик 4",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "STANDARD_PARTS"
+      ],
+      "price_amount": null,
+      "price_currency": null,
+      "region_code": "PNC_REG_16",
+      "quantity": "40.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-05",
+      "execution_deadline": "2026-12-05T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "GRINDING",
+          "cnc": true,
+          "axes": null,
+          "working_zone_x_mm": "404.000",
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO3834",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-05",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-005",
+      "procurement_number": "PNC-2026-0005",
+      "title": "Подготовленная производственная возможность № 5",
+      "customer": "Тестовый заказчик 5",
+      "source_url": null,
+      "status": "UNKNOWN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "33.12.19.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "106250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": null,
+      "application_deadline": "2026-10-06T05:30:00+05:00",
+      "execution_deadline": "2026-12-06",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "CONTROL",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "6.6000",
+          "measuring_capability_required": null,
+          "cmm_required": true,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-006",
+      "procurement_number": "PNC-2026-0006",
+      "title": "Подготовленная производственная возможность № 6",
+      "customer": null,
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "107500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "60.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-07",
+      "execution_deadline": "2026-12-07T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "COPPER_BASED",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "506.000",
+          "width_mm": "206.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-007",
+      "procurement_number": "PNC-2026-0007",
+      "title": "Подготовленная производственная возможность № 7",
+      "customer": "Тестовый заказчик 7",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "ASSEMBLY_UNIT"
+      ],
+      "price_amount": "108750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "70.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-08T07:30:00+05:00",
+      "execution_deadline": null,
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "PRESS_FORGING",
+          "cnc": false,
+          "axes": 3,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "107.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_OTHER",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-008",
+      "procurement_number": "PNC-2026-0008",
+      "title": "Подготовленная производственная возможность № 8",
+      "customer": "Тестовый заказчик 8",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "28.41.20.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": null,
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "80.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-09",
+      "execution_deadline": "2026-12-09T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "PREPARATORY",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 9,
+          "maximum_ra_um": null,
+          "measuring_capability_required": false,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-009",
+      "procurement_number": "PNC-2026-0009",
+      "title": "Подготовленная производственная возможность № 9",
+      "customer": "Тестовый заказчик 9",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "111250.00",
+      "price_currency": "RUB",
+      "region_code": null,
+      "quantity": "90.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-10T00:30:00+05:00",
+      "execution_deadline": "2026-12-10",
+      "material_requirements": [
+        {
+          "material_group_code": "STEEL_CARBON",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "509.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "89.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-010",
+      "procurement_number": "PNC-2026-0010",
+      "title": "Подготовленная производственная возможность № 10",
+      "customer": "Тестовый заказчик 10",
+      "source_url": "https://procurement.example.test/opportunities/10",
+      "status": "UNKNOWN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "SEMI_FINISHED"
+      ],
+      "price_amount": "112500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": "pcs",
+      "application_deadline": "2026-10-11",
+      "execution_deadline": "2026-12-11T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "WELDING",
+          "cnc": true,
+          "axes": 1,
+          "working_zone_x_mm": "410.000",
+          "working_zone_y_mm": "310.000",
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO45001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-11",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-011",
+      "procurement_number": "PNC-2026-0011",
+      "title": "Подготовленная производственная возможность № 11",
+      "customer": "Тестовый заказчик 11",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.62.10.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "113750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "110.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-12T02:30:00+05:00",
+      "execution_deadline": "2026-12-12",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "COATING",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "3.6000",
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-012",
+      "procurement_number": "PNC-2026-0012",
+      "title": "Подготовленная производственная возможность № 12",
+      "customer": null,
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": null,
+      "price_currency": null,
+      "region_code": "PNC_REG_77",
+      "quantity": "120.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-13",
+      "execution_deadline": "2026-12-13T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "CAST_IRON",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "512.000",
+          "width_mm": "212.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": "32.250",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-013",
+      "procurement_number": "PNC-2026-0013",
+      "title": "Подготовленная производственная возможность № 13",
+      "customer": "Тестовый заказчик 13",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "FINISHED_GOOD"
+      ],
+      "price_amount": "116250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "130.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-14T04:30:00+05:00",
+      "execution_deadline": "2026-12-14",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "ADDITIVE_MFG",
+          "cnc": false,
+          "axes": 4,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "113.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_RTN",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-014",
+      "procurement_number": "PNC-2026-0014",
+      "title": "Подготовленная производственная возможность № 14",
+      "customer": "Тестовый заказчик 14",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.11.23.110"
+      ],
+      "product_type_codes": null,
+      "price_amount": "117500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "140.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-15",
+      "execution_deadline": null,
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "PACKAGING",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 15,
+          "maximum_ra_um": null,
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-015",
+      "procurement_number": "PNC-2026-0015",
+      "title": "Подготовленная производственная возможность № 15",
+      "customer": "Тестовый заказчик 15",
+      "source_url": null,
+      "status": "UNKNOWN",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "118750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": null,
+      "application_deadline": "2026-10-16T06:30:00+05:00",
+      "execution_deadline": "2026-12-16",
+      "material_requirements": [
+        {
+          "material_group_code": "TITANIUM_HIGH_TEMP",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "515.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "95.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-016",
+      "procurement_number": "PNC-2026-0016",
+      "title": "Подготовленная производственная возможность № 16",
+      "customer": "Тестовый заказчик 16",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "STANDARD_PARTS"
+      ],
+      "price_amount": null,
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "160.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-17",
+      "execution_deadline": "2026-12-17T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "DRILLING_BORING",
+          "cnc": true,
+          "axes": null,
+          "working_zone_x_mm": "416.000",
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO14001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-17",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-017",
+      "procurement_number": "PNC-2026-0017",
+      "title": "Подготовленная производственная возможность № 17",
+      "customer": "Тестовый заказчик 17",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.73.30.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "121250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "170.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-18T08:30:00+05:00",
+      "execution_deadline": "2026-12-18",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "THERMAL",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "9.6000",
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-018",
+      "procurement_number": "PNC-2026-0018",
+      "title": "Подготовленная производственная возможность № 18",
+      "customer": null,
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "122500.00",
+      "price_currency": "RUB",
+      "region_code": null,
+      "quantity": "180.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-19",
+      "execution_deadline": "2026-12-19T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "STEEL_ALLOY",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "518.000",
+          "width_mm": "218.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-019",
+      "procurement_number": "PNC-2026-0019",
+      "title": "Подготовленная производственная возможность № 19",
+      "customer": "Тестовый заказчик 19",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "ASSEMBLY_UNIT"
+      ],
+      "price_amount": "123750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "190.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-20T01:30:00+05:00",
+      "execution_deadline": "2026-12-20",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "THERMAL_CUTTING",
+          "cnc": false,
+          "axes": 5,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "119.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_GOST_R",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-020",
+      "procurement_number": "PNC-2026-0020",
+      "title": "Подготовленная производственная возможность № 20",
+      "customer": "Тестовый заказчик 20",
+      "source_url": "https://procurement.example.test/opportunities/20",
+      "status": "UNKNOWN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "33.12.19.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": null,
+      "price_currency": null,
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": "pcs",
+      "application_deadline": "2026-10-21",
+      "execution_deadline": "2026-12-21T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "ASSEMBLY",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 3,
+          "maximum_ra_um": null,
+          "measuring_capability_required": false,
+          "cmm_required": true,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-021",
+      "procurement_number": "PNC-2026-0021",
+      "title": "Подготовленная производственная возможность № 21",
+      "customer": "Тестовый заказчик 21",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "126250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "210.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-22T03:30:00+05:00",
+      "execution_deadline": null,
+      "material_requirements": [
+        {
+          "material_group_code": "ALUMINUM_ALLOY",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "521.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "101.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-022",
+      "procurement_number": "PNC-2026-0022",
+      "title": "Подготовленная производственная возможность № 22",
+      "customer": "Тестовый заказчик 22",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "SEMI_FINISHED"
+      ],
+      "price_amount": "127500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "220.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-23",
+      "execution_deadline": "2026-12-23T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "HEAT_TREATMENT",
+          "cnc": true,
+          "axes": 3,
+          "working_zone_x_mm": "422.000",
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO9001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-23",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-023",
+      "procurement_number": "PNC-2026-0023",
+      "title": "Подготовленная производственная возможность № 23",
+      "customer": "Тестовый заказчик 23",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "28.41.20.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "128750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "230.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-24T05:30:00+05:00",
+      "execution_deadline": "2026-12-24",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "MACHINING",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "6.6000",
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-024",
+      "procurement_number": "PNC-2026-0024",
+      "title": "Подготовленная производственная возможность № 24",
+      "customer": null,
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": null,
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "240.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-25",
+      "execution_deadline": "2026-12-25T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "PLASTICS_COMP",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "524.000",
+          "width_mm": "224.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": "44.250",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-025",
+      "procurement_number": "PNC-2026-0025",
+      "title": "Подготовленная производственная возможность № 25",
+      "customer": "Тестовый заказчик 25",
+      "source_url": null,
+      "status": "UNKNOWN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "FINISHED_GOOD"
+      ],
+      "price_amount": "131250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": null,
+      "application_deadline": "2026-10-26T07:30:00+05:00",
+      "execution_deadline": "2026-12-26",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "ASSEMBLY_BENCH",
+          "cnc": false,
+          "axes": 1,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": "325.000",
+          "working_zone_z_mm": null,
+          "diameter_mm": "125.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO3834",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-026",
+      "procurement_number": "PNC-2026-0026",
+      "title": "Подготовленная производственная возможность № 26",
+      "customer": "Тестовый заказчик 26",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.62.10.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "132500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "260.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-27",
+      "execution_deadline": "2026-12-27T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "CONTROL",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 9,
+          "maximum_ra_um": null,
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-027",
+      "procurement_number": "PNC-2026-0027",
+      "title": "Подготовленная производственная возможность № 27",
+      "customer": "Тестовый заказчик 27",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "133750.00",
+      "price_currency": "RUB",
+      "region_code": null,
+      "quantity": "270.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-01T00:30:00+05:00",
+      "execution_deadline": "2026-12-01",
+      "material_requirements": [
+        {
+          "material_group_code": "STEEL_STAINLESS",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "527.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "107.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-028",
+      "procurement_number": "PNC-2026-0028",
+      "title": "Подготовленная производственная возможность № 28",
+      "customer": "Тестовый заказчик 28",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "STANDARD_PARTS"
+      ],
+      "price_amount": null,
+      "price_currency": null,
+      "region_code": "PNC_REG_74",
+      "quantity": "280.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-02",
+      "execution_deadline": null,
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "MILLING",
+          "cnc": true,
+          "axes": null,
+          "working_zone_x_mm": "428.000",
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_OTHER",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-02",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-029",
+      "procurement_number": "PNC-2026-0029",
+      "title": "Подготовленная производственная возможность № 29",
+      "customer": "Тестовый заказчик 29",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.11.23.110"
+      ],
+      "product_type_codes": null,
+      "price_amount": "136250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "290.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-03T02:30:00+05:00",
+      "execution_deadline": "2026-12-03",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "PREPARATORY",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "3.6000",
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-030",
+      "procurement_number": "PNC-2026-0030",
+      "title": "Подготовленная производственная возможность № 30",
+      "customer": null,
+      "source_url": "https://procurement.example.test/opportunities/30",
+      "status": "UNKNOWN",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "137500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": "pcs",
+      "application_deadline": "2026-10-04",
+      "execution_deadline": "2026-12-04T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "COPPER_BASED",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "530.000",
+          "width_mm": "230.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-031",
+      "procurement_number": "PNC-2026-0031",
+      "title": "Подготовленная производственная возможность № 31",
+      "customer": "Тестовый заказчик 31",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "ASSEMBLY_UNIT"
+      ],
+      "price_amount": "138750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "310.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-05T04:30:00+05:00",
+      "execution_deadline": "2026-12-05",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "GEAR_PROCESSING",
+          "cnc": false,
+          "axes": 2,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "131.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO45001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-032",
+      "procurement_number": "PNC-2026-0032",
+      "title": "Подготовленная производственная возможность № 32",
+      "customer": "Тестовый заказчик 32",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.73.30.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": null,
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "320.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-06",
+      "execution_deadline": "2026-12-06T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "COATING",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 15,
+          "maximum_ra_um": null,
+          "measuring_capability_required": false,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-033",
+      "procurement_number": "PNC-2026-0033",
+      "title": "Подготовленная производственная возможность № 33",
+      "customer": "Тестовый заказчик 33",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "141250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "330.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-07T06:30:00+05:00",
+      "execution_deadline": "2026-12-07",
+      "material_requirements": [
+        {
+          "material_group_code": "STEEL_CARBON",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "533.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "113.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-034",
+      "procurement_number": "PNC-2026-0034",
+      "title": "Подготовленная производственная возможность № 34",
+      "customer": "Тестовый заказчик 34",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "SEMI_FINISHED"
+      ],
+      "price_amount": "142500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "340.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-08",
+      "execution_deadline": "2026-12-08T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "FOUNDRY",
+          "cnc": true,
+          "axes": 5,
+          "working_zone_x_mm": "434.000",
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_RTN",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-08",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-035",
+      "procurement_number": "PNC-2026-0035",
+      "title": "Подготовленная производственная возможность № 35",
+      "customer": "Тестовый заказчик 35",
+      "source_url": null,
+      "status": "UNKNOWN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "33.12.19.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "143750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": null,
+      "application_deadline": "2026-10-09T08:30:00+05:00",
+      "execution_deadline": null,
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "PACKAGING",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "9.6000",
+          "measuring_capability_required": null,
+          "cmm_required": true,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-036",
+      "procurement_number": "PNC-2026-0036",
+      "title": "Подготовленная производственная возможность № 36",
+      "customer": null,
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": null,
+      "price_currency": null,
+      "region_code": null,
+      "quantity": "360.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-10",
+      "execution_deadline": "2026-12-10T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "CAST_IRON",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "536.000",
+          "width_mm": "236.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": "56.250",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-037",
+      "procurement_number": "PNC-2026-0037",
+      "title": "Подготовленная производственная возможность № 37",
+      "customer": "Тестовый заказчик 37",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "FINISHED_GOOD"
+      ],
+      "price_amount": "146250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "370.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-11T01:30:00+05:00",
+      "execution_deadline": "2026-12-11",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "INSPECTION_MEASURING",
+          "cnc": false,
+          "axes": 3,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "137.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO14001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-038",
+      "procurement_number": "PNC-2026-0038",
+      "title": "Подготовленная производственная возможность № 38",
+      "customer": "Тестовый заказчик 38",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "28.41.20.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "147500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "380.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-12",
+      "execution_deadline": "2026-12-12T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "THERMAL",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 3,
+          "maximum_ra_um": null,
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-039",
+      "procurement_number": "PNC-2026-0039",
+      "title": "Подготовленная производственная возможность № 39",
+      "customer": "Тестовый заказчик 39",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "148750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "390.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-13T03:30:00+05:00",
+      "execution_deadline": "2026-12-13",
+      "material_requirements": [
+        {
+          "material_group_code": "TITANIUM_HIGH_TEMP",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "539.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "119.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-040",
+      "procurement_number": "PNC-2026-0040",
+      "title": "Подготовленная производственная возможность № 40",
+      "customer": "Тестовый заказчик 40",
+      "source_url": "https://procurement.example.test/opportunities/40",
+      "status": "UNKNOWN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "STANDARD_PARTS"
+      ],
+      "price_amount": null,
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": "pcs",
+      "application_deadline": "2026-10-14",
+      "execution_deadline": "2026-12-14T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "TURNING",
+          "cnc": true,
+          "axes": null,
+          "working_zone_x_mm": "440.000",
+          "working_zone_y_mm": "340.000",
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_GOST_R",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-14",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-041",
+      "procurement_number": "PNC-2026-0041",
+      "title": "Подготовленная производственная возможность № 41",
+      "customer": "Тестовый заказчик 41",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.62.10.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "151250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "410.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-15T05:30:00+05:00",
+      "execution_deadline": "2026-12-15",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "ASSEMBLY",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "6.6000",
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-042",
+      "procurement_number": "PNC-2026-0042",
+      "title": "Подготовленная производственная возможность № 42",
+      "customer": null,
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "152500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "420.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-16",
+      "execution_deadline": null,
+      "material_requirements": [
+        {
+          "material_group_code": "STEEL_ALLOY",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "542.000",
+          "width_mm": "242.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-043",
+      "procurement_number": "PNC-2026-0043",
+      "title": "Подготовленная производственная возможность № 43",
+      "customer": "Тестовый заказчик 43",
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "ASSEMBLY_UNIT"
+      ],
+      "price_amount": "153750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "430.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-17T07:30:00+05:00",
+      "execution_deadline": "2026-12-17",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "GRINDING",
+          "cnc": false,
+          "axes": 4,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "143.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO9001",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-044",
+      "procurement_number": "PNC-2026-0044",
+      "title": "Подготовленная производственная возможность № 44",
+      "customer": "Тестовый заказчик 44",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.11.23.110"
+      ],
+      "product_type_codes": null,
+      "price_amount": null,
+      "price_currency": null,
+      "region_code": "PNC_REG_16",
+      "quantity": "440.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-18",
+      "execution_deadline": "2026-12-18T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "MACHINING",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 9,
+          "maximum_ra_um": null,
+          "measuring_capability_required": false,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-045",
+      "procurement_number": "PNC-2026-0045",
+      "title": "Подготовленная производственная возможность № 45",
+      "customer": "Тестовый заказчик 45",
+      "source_url": null,
+      "status": "UNKNOWN",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": "156250.00",
+      "price_currency": "RUB",
+      "region_code": null,
+      "quantity": null,
+      "unit": null,
+      "application_deadline": "2026-10-19T00:30:00+05:00",
+      "execution_deadline": "2026-12-19",
+      "material_requirements": [
+        {
+          "material_group_code": "ALUMINUM_ALLOY",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "545.000",
+          "width_mm": null,
+          "height_mm": null,
+          "diameter_mm": "125.000",
+          "mass_kg": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-046",
+      "procurement_number": "PNC-2026-0046",
+      "title": "Подготовленная производственная возможность № 46",
+      "customer": "Тестовый заказчик 46",
+      "source_url": null,
+      "status": "OPEN",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "SEMI_FINISHED"
+      ],
+      "price_amount": "157500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_66",
+      "quantity": "460.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-20",
+      "execution_deadline": "2026-12-20T12:00:00Z",
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "PRESS_FORGING",
+          "cnc": true,
+          "axes": 2,
+          "working_zone_x_mm": "446.000",
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_ISO3834",
+          "requirement_strength": "UNKNOWN",
+          "required_by": "2026-11-20",
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-047",
+      "procurement_number": "PNC-2026-0047",
+      "title": "Подготовленная производственная возможность № 47",
+      "customer": "Тестовый заказчик 47",
+      "source_url": null,
+      "status": "CLOSED",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "25.73.30.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "158750.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_77",
+      "quantity": "470.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-21T02:30:00+05:00",
+      "execution_deadline": "2026-12-21",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "CONTROL",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": null,
+          "maximum_ra_um": "3.6000",
+          "measuring_capability_required": null,
+          "cmm_required": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    },
+    {
+      "source": "commercial",
+      "external_id": "PNC-OPP-2026-048",
+      "procurement_number": "PNC-2026-0048",
+      "title": "Подготовленная производственная возможность № 48",
+      "customer": null,
+      "source_url": null,
+      "status": "CANCELLED",
+      "procurement_type": "commercial",
+      "okpd2_codes": null,
+      "product_type_codes": [],
+      "price_amount": null,
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_74",
+      "quantity": "480.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-22",
+      "execution_deadline": "2026-12-22T12:00:00Z",
+      "material_requirements": [
+        {
+          "material_group_code": "PLASTICS_COMP",
+          "material_id": null,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "technology_requirements": null,
+      "equipment_requirements": [],
+      "dimensional_mass_requirements": [
+        {
+          "length_mm": "548.000",
+          "width_mm": "248.000",
+          "height_mm": null,
+          "diameter_mm": null,
+          "mass_kg": "68.250",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "quality_requirements": null,
+      "required_certificates": []
+    },
+    {
+      "source": "prepared-fixture",
+      "external_id": "PNC-OPP-2026-049",
+      "procurement_number": "PNC-2026-0049",
+      "title": "Подготовленная производственная возможность № 49",
+      "customer": "Тестовый заказчик 49",
+      "source_url": null,
+      "status": "AWARDED",
+      "procurement_type": "44-fz",
+      "okpd2_codes": [],
+      "product_type_codes": [
+        "FINISHED_GOOD"
+      ],
+      "price_amount": "161250.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_16",
+      "quantity": "490.000000",
+      "unit": "pcs",
+      "application_deadline": "2026-10-23T04:30:00+05:00",
+      "execution_deadline": null,
+      "material_requirements": null,
+      "technology_requirements": [],
+      "equipment_requirements": [
+        {
+          "equipment_type_code": "WELDING",
+          "cnc": false,
+          "axes": 5,
+          "working_zone_x_mm": null,
+          "working_zone_y_mm": null,
+          "working_zone_z_mm": null,
+          "diameter_mm": "149.500",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "dimensional_mass_requirements": null,
+      "quality_requirements": [],
+      "required_certificates": [
+        {
+          "certificate_type_code": "PNC_CERT_OTHER",
+          "requirement_strength": "UNKNOWN",
+          "required_by": null,
+          "valid_through": null
+        }
+      ]
+    },
+    {
+      "source": "eis",
+      "external_id": "PNC-OPP-2026-050",
+      "procurement_number": "PNC-2026-0050",
+      "title": "Подготовленная производственная возможность № 50",
+      "customer": "Тестовый заказчик 50",
+      "source_url": "https://procurement.example.test/opportunities/50",
+      "status": "UNKNOWN",
+      "procurement_type": "223-fz",
+      "okpd2_codes": [
+        "33.12.19.000"
+      ],
+      "product_type_codes": null,
+      "price_amount": "162500.00",
+      "price_currency": "RUB",
+      "region_code": "PNC_REG_02",
+      "quantity": null,
+      "unit": "pcs",
+      "application_deadline": "2026-10-24",
+      "execution_deadline": "2026-12-24T12:00:00Z",
+      "material_requirements": [],
+      "technology_requirements": [
+        {
+          "technology_code": "PREPARATORY",
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "equipment_requirements": null,
+      "dimensional_mass_requirements": [],
+      "quality_requirements": [
+        {
+          "required_it_grade": 15,
+          "maximum_ra_um": null,
+          "measuring_capability_required": null,
+          "cmm_required": true,
+          "requirement_strength": "UNKNOWN"
+        }
+      ],
+      "required_certificates": null
+    }
+  ]
+}

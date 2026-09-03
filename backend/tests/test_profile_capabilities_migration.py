@@ -3,9 +3,9 @@ import re
 from pathlib import Path
 
 import sqlalchemy as sa
+
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
-
 from app.models import (
     ProfileMaterialCapability,
     ProfileSectionCompleteness,
@@ -110,6 +110,46 @@ def create_migrated_engine(
     return engine
 
 
+def reflected_check_constraints(
+    engine: sa.Engine,
+    table_name: str,
+) -> list[dict[str, object]]:
+    """Reflect checks across SQLAlchemy versions used by local development.
+
+    SQLAlchemy 2.0.43 omits the final SQLite CHECK when its SQL literal embeds
+    control whitespace. Newer supported versions reflect it directly. The
+    fallback reads the same sqlite_master DDL and preserves the existing
+    structural and codepoint assertions without changing the foundation DDL.
+    """
+    constraints = list(sa.inspect(engine).get_check_constraints(table_name))
+    names = {item["name"] for item in constraints}
+    if (
+        table_name != "pnc_profile_section_completeness"
+        or CONFIRMATION_CHECK_NAME in names
+    ):
+        return constraints
+
+    with engine.connect() as connection:
+        ddl = connection.execute(
+            sa.text("SELECT sql FROM sqlite_master WHERE name = :table_name"),
+            {"table_name": table_name},
+        ).scalar_one()
+    match = re.search(
+        rf"CONSTRAINT\s+{CONFIRMATION_CHECK_NAME}\s+CHECK\s+"
+        r"\((.*)\),\s*FOREIGN KEY",
+        ddl,
+        re.DOTALL,
+    )
+    assert match is not None
+    constraints.append(
+        {
+            "name": CONFIRMATION_CHECK_NAME,
+            "sqltext": match.group(1),
+        }
+    )
+    return constraints
+
+
 def test_foundation_migration_backfills_unknown_sections_without_revisions() -> None:
     engine = create_migrated_engine((1, 2))
     with engine.connect() as connection:
@@ -177,7 +217,7 @@ def test_foundation_migration_structure_matches_orm_metadata() -> None:
         assert migrated_unique_names == orm_unique_names
 
         migrated_check_names = {
-            item["name"] for item in inspector.get_check_constraints(table.name)
+            item["name"] for item in reflected_check_constraints(engine, table.name)
         }
         orm_check_names = {
             constraint.name
@@ -221,12 +261,12 @@ def test_foundation_migration_has_single_expected_parent() -> None:
 
 def test_confirmation_check_whitespace_semantics_match_orm() -> None:
     engine = create_migrated_engine()
-    inspector = sa.inspect(engine)
 
     migrated_confirmation = next(
         item["sqltext"]
-        for item in inspector.get_check_constraints(
-            "pnc_profile_section_completeness"
+        for item in reflected_check_constraints(
+            engine,
+            "pnc_profile_section_completeness",
         )
         if item["name"] == CONFIRMATION_CHECK_NAME
     )
